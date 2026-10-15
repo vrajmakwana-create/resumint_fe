@@ -1,10 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
+import { authApi } from '../../services/api'
 
-export default function OtpVerificationForm({ onBackToLogin, onVerifiedSuccess }) {
-  const [digits, setDigits] = useState(['5', '8', '2', '4', '1', '9'])
+export default function OtpVerificationForm({ email, userId, onBackToLogin, onVerifiedSuccess }) {
+  const [digits, setDigits] = useState(['', '', '', '', '', ''])
   const [demoState, setDemoState] = useState('default') // 'default' | 'error' | 'success'
   const [timeLeft, setTimeLeft] = useState(582) // 09:42 in seconds
   const [resendCooldown, setResendCooldown] = useState(48)
+  const [isLoading, setIsLoading] = useState(false)
+  const [apiError, setApiError] = useState('')
   const inputRefs = useRef([])
 
   useEffect(() => {
@@ -26,6 +29,10 @@ export default function OtpVerificationForm({ onBackToLogin, onVerifiedSuccess }
     const newDigits = [...digits]
     newDigits[index] = val
     setDigits(newDigits)
+    if (demoState === 'error') {
+      setDemoState('default')
+      setApiError('')
+    }
 
     if (val && index < 5 && inputRefs.current[index + 1]) {
       inputRefs.current[index + 1].focus()
@@ -40,23 +47,68 @@ export default function OtpVerificationForm({ onBackToLogin, onVerifiedSuccess }
 
   const handlePaste = (e) => {
     e.preventDefault()
-    const pastedData = e.clipboardData.getData('text').slice(0, 6)
+    const pastedData = e.clipboardData.getData('text').trim().slice(0, 6)
     if (/^\d+$/.test(pastedData)) {
       const newDigits = pastedData.split('').concat(Array(6 - pastedData.length).fill(''))
       setDigits(newDigits)
+      if (demoState === 'error') {
+        setDemoState('default')
+        setApiError('')
+      }
+      // Focus the next empty or last input
+      const nextIndex = Math.min(pastedData.length, 5)
+      inputRefs.current[nextIndex]?.focus()
     }
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const code = digits.join('')
-    if (code === '582419' || code.length === 6) {
-      setDemoState('success')
-      if (onVerifiedSuccess) {
-        setTimeout(onVerifiedSuccess, 1000)
-      }
-    } else {
+
+    if (code.length !== 6) {
       setDemoState('error')
+      setApiError('Please enter the full 6-digit verification code.')
+      return
+    }
+
+    const effectiveUserId = userId || localStorage.getItem('resumint_user_id')
+    if (!effectiveUserId) {
+      setDemoState('error')
+      setApiError('User session ID not found. Please sign up or log in again.')
+      return
+    }
+
+    setIsLoading(true)
+    setApiError('')
+
+    try {
+      const response = await authApi.verifyOtp({
+        user_id: effectiveUserId,
+        otp: code,
+      })
+
+      // Backend returns { status: 200, msg: "...", data: { id, first_name, last_name, email, is_verified } }
+      if (response && response.status === 200) {
+        setDemoState('success')
+        if (response.data) {
+          localStorage.setItem('resumint_user', JSON.stringify(response.data))
+          localStorage.setItem('resumint_is_verified', 'true')
+        }
+        setTimeout(() => {
+          if (onVerifiedSuccess) {
+            onVerifiedSuccess(response.data)
+          }
+        }, 800)
+      } else {
+        setDemoState('error')
+        setApiError(response?.msg || 'Verification failed. Please try again.')
+      }
+    } catch (err) {
+      console.error('OTP Verification Error:', err)
+      setDemoState('error')
+      setApiError(err.message || 'Invalid verification code. Please check and try again.')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -71,7 +123,9 @@ export default function OtpVerificationForm({ onBackToLogin, onVerifiedSuccess }
         </h2>
         <p className="font-body-default text-body-default text-[#64748B] mt-1.5 leading-relaxed">
           We've sent a 6-digit verification code to{' '}
-          <span className="font-body-semibold text-[#14243B]">alex.morgan@design.io</span>
+          <span className="font-body-semibold text-[#14243B]">
+            {email || 'alex.morgan@design.io'}
+          </span>
           <button
             onClick={onBackToLogin}
             className="text-[#2563EB] hover:underline text-[13px] ml-1 font-medium cursor-pointer"
@@ -92,13 +146,12 @@ export default function OtpVerificationForm({ onBackToLogin, onVerifiedSuccess }
               <input
                 key={idx}
                 ref={(el) => (inputRefs.current[idx] = el)}
-                className={`otp-input w-12 h-12 text-center font-bold text-[20px] rounded-lg border bg-white text-[#14243B] outline-none transition-all ${
-                  demoState === 'error'
-                    ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-200 text-red-600'
-                    : demoState === 'success'
+                className={`otp-input w-12 h-12 text-center font-bold text-[20px] rounded-lg border bg-white text-[#14243B] outline-none transition-all ${demoState === 'error'
+                  ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-200 text-red-600'
+                  : demoState === 'success'
                     ? 'border-emerald-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 text-emerald-600'
                     : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20'
-                }`}
+                  }`}
                 inputMode="numeric"
                 maxLength={1}
                 pattern="[0-9]*"
@@ -118,7 +171,7 @@ export default function OtpVerificationForm({ onBackToLogin, onVerifiedSuccess }
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-[18px] text-[#DC2626]">error</span>
                 <span className="font-caption-helper text-[12px] text-[#DC2626]">
-                  Invalid verification code. Please check and try again.
+                  {apiError || 'Invalid verification code. Please check and try again.'}
                 </span>
               </div>
             </div>
@@ -142,7 +195,7 @@ export default function OtpVerificationForm({ onBackToLogin, onVerifiedSuccess }
                 </span>
               </div>
               <span className="font-caption-helper text-[11px] text-[#2563EB] font-medium bg-white px-2 py-0.5 rounded border border-blue-200/60">
-                Auto-filling
+                Security Check
               </span>
             </div>
           )}
@@ -150,12 +203,22 @@ export default function OtpVerificationForm({ onBackToLogin, onVerifiedSuccess }
 
         {/* Verify Button */}
         <button
-          className="w-full h-[44px] bg-primary-container hover:bg-[#1D4ED8] active:bg-[#1E40AF] text-white font-body-semibold text-body-semibold rounded-lg shadow-sm transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full h-[44px] bg-primary-container hover:bg-[#1D4ED8] active:bg-[#1E40AF] text-white font-body-semibold text-body-semibold rounded-lg shadow-sm transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           id="verify-btn"
           type="submit"
+          disabled={isLoading}
         >
-          <span>Verify Code</span>
-          <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+          {isLoading ? (
+            <>
+              <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+              <span>Verifying...</span>
+            </>
+          ) : (
+            <>
+              <span>Verify Code</span>
+              <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+            </>
+          )}
         </button>
 
         {/* Resend Link */}
@@ -195,47 +258,6 @@ export default function OtpVerificationForm({ onBackToLogin, onVerifiedSuccess }
             </span>
           </div>
 
-          {/* Interactive State Tester */}
-          <div className="p-2.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-left">
-            <div className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">
-              Preview Verification States:
-            </div>
-            <div className="grid grid-cols-3 gap-1.5">
-              <button
-                className={`px-2 py-1 text-[11px] rounded border font-medium transition-colors text-center cursor-pointer ${
-                  demoState === 'default'
-                    ? 'bg-blue-50 border-[#2563EB] text-[#2563EB]'
-                    : 'bg-white border-[#CBD5E1] text-[#14243B] hover:bg-[#F1F5F9]'
-                }`}
-                onClick={() => setDemoState('default')}
-                type="button"
-              >
-                Default
-              </button>
-              <button
-                className={`px-2 py-1 text-[11px] rounded border font-medium transition-colors text-center cursor-pointer ${
-                  demoState === 'error'
-                    ? 'bg-red-50 border-red-500 text-[#DC2626]'
-                    : 'bg-white border-red-200 text-[#DC2626] hover:bg-red-50'
-                }`}
-                onClick={() => setDemoState('error')}
-                type="button"
-              >
-                Error
-              </button>
-              <button
-                className={`px-2 py-1 text-[11px] rounded border font-medium transition-colors text-center cursor-pointer ${
-                  demoState === 'success'
-                    ? 'bg-emerald-50 border-emerald-500 text-[#16A34A]'
-                    : 'bg-white border-emerald-200 text-[#16A34A] hover:bg-emerald-50'
-                }`}
-                onClick={() => setDemoState('success')}
-                type="button"
-              >
-                Success
-              </button>
-            </div>
-          </div>
         </div>
       </form>
     </div>

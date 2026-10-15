@@ -1,18 +1,61 @@
 import { useState } from 'react'
+import { authApi } from '../../services/api'
 
 export default function SignupForm({ onSwitchToLogin, onSubmitSignup }) {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [name, setName] = useState('Alex Morgan')
-  const [email, setEmail] = useState('alex.morgan@design.io')
-  const [password, setPassword] = useState('DesignArchitect2024!')
-  const [confirmPassword, setConfirmPassword] = useState('DesignArchitect2024!')
+  const [name, setName] = useState('John Doe')
+  const [email, setEmail] = useState('john@gmail.com')
+  const [password, setPassword] = useState(null)
+  const [confirmPassword, setConfirmPassword] = useState(null)
   const [termsAgreed, setTermsAgreed] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
+  const [successMsg, setSuccessMsg] = useState('')
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    if (onSubmitSignup) {
-      onSubmitSignup({ name, email, password, confirmPassword })
+    setErrorMsg('')
+    setSuccessMsg('')
+
+    if (password !== confirmPassword) {
+      setErrorMsg('Passwords do not match.')
+      return
+    }
+
+    if (!termsAgreed) {
+      setErrorMsg('Please agree to the Terms of Service and Privacy Policy.')
+      return
+    }
+
+    // Split Full Name into first_name and last_name
+    const nameParts = name.trim().split(/\s+/)
+    const first_name = nameParts[0] || 'User'
+    const last_name = nameParts.slice(1).join(' ') || ''
+
+    setIsLoading(true)
+    try {
+      const response = await authApi.register({
+        first_name,
+        last_name,
+        email: email.trim(),
+        password,
+      })
+
+      setSuccessMsg(response?.msg || 'User Verification Email Sent')
+
+      if (onSubmitSignup) {
+        setTimeout(() => {
+          onSubmitSignup({
+            email: email.trim(),
+            user: response?.data,
+          })
+        }, 600)
+      }
+    } catch (err) {
+      setErrorMsg(err.message || 'Failed to create account. Please try again.')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -198,13 +241,42 @@ export default function SignupForm({ onSwitchToLogin, onSubmitSignup }) {
           </label>
         </div>
 
+        {/* Error / Success Notifications */}
+        {errorMsg && (
+          <div className="p-3 rounded-lg bg-red-50 border border-red-200 flex items-center gap-2 text-left">
+            <span className="material-symbols-outlined text-[18px] text-[#DC2626]">error</span>
+            <span className="font-caption-helper text-[12px] text-[#DC2626] font-medium">
+              {errorMsg}
+            </span>
+          </div>
+        )}
+
+        {successMsg && (
+          <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center gap-2 text-left">
+            <span className="material-symbols-outlined text-[18px] text-[#16A34A]">check_circle</span>
+            <span className="font-caption-helper text-[12px] text-[#15803D] font-medium">
+              {successMsg}
+            </span>
+          </div>
+        )}
+
         {/* Submit Sign Up */}
         <button
-          className="w-full h-[44px] bg-primary-container hover:bg-[#1D4ED8] active:bg-[#1E40AF] text-white font-body-semibold text-body-semibold rounded-lg shadow-sm transition-all duration-150 flex items-center justify-center gap-2 mt-2 cursor-pointer"
+          disabled={isLoading}
+          className="w-full h-[44px] bg-primary-container hover:bg-[#1D4ED8] active:bg-[#1E40AF] disabled:opacity-75 text-white font-body-semibold text-body-semibold rounded-lg shadow-sm transition-all duration-150 flex items-center justify-center gap-2 mt-2 cursor-pointer"
           type="submit"
         >
-          <span>Create Account</span>
-          <span className="material-symbols-outlined text-[18px]">badge</span>
+          {isLoading ? (
+            <>
+              <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+              <span>Creating Account...</span>
+            </>
+          ) : (
+            <>
+              <span>Create Account</span>
+              <span className="material-symbols-outlined text-[18px]">badge</span>
+            </>
+          )}
         </button>
       </form>
 

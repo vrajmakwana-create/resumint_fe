@@ -1,15 +1,49 @@
 import { useState } from 'react'
+import { authApi, setToken, setRefreshToken, setCurrentUser } from '../../services/api'
 
 export default function LoginForm({ onSwitchToSignup, onSubmitLogin }) {
   const [showPassword, setShowPassword] = useState(false)
-  const [email, setEmail] = useState('alex.morgan@design.io')
+  const [email, setEmail] = useState(() => localStorage.getItem('resumint_email') || 'vraj@yopmail.com')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    if (onSubmitLogin) {
-      onSubmitLogin({ email, password, rememberMe })
+    setErrorMessage('')
+    setSuccessMessage('')
+    setIsLoading(true)
+
+    try {
+      const response = await authApi.login({
+        email: email.trim(),
+        password,
+      })
+
+      const resData = response?.data || response
+      const accessToken = resData?.access_token || response?.access_token
+
+      if (accessToken) {
+        setToken(accessToken)
+        const refreshToken = resData?.refresh_token || response?.refresh_token
+        if (refreshToken) setRefreshToken(refreshToken)
+        const user = resData?.user || response?.user
+        if (user) setCurrentUser(user)
+
+        setSuccessMessage(response?.msg || 'User Login Successfully!')
+        if (onSubmitLogin) {
+          onSubmitLogin(resData)
+        }
+      } else {
+        setErrorMessage(response?.msg || 'Login failed. Please check your credentials.')
+      }
+    } catch (err) {
+      console.error('Login Error:', err)
+      setErrorMessage(err.message || 'Invalid email or password.')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -139,13 +173,39 @@ export default function LoginForm({ onSwitchToSignup, onSubmitLogin }) {
           </a>
         </div>
 
+        {/* Error Alert */}
+        {errorMessage && (
+          <div className="p-3 rounded-lg bg-red-50 border border-red-200 flex items-center gap-2 text-left text-red-700">
+            <span className="material-symbols-outlined text-[20px] text-[#DC2626] shrink-0">error</span>
+            <span className="font-caption-helper text-[13px]">{errorMessage}</span>
+          </div>
+        )}
+
+        {/* Success Alert */}
+        {successMessage && (
+          <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center gap-2 text-left text-emerald-700">
+            <span className="material-symbols-outlined text-[20px] text-[#16A34A] shrink-0">check_circle</span>
+            <span className="font-caption-helper text-[13px] font-semibold">{successMessage}</span>
+          </div>
+        )}
+
         {/* Primary Action Button */}
         <button
-          className="w-full h-[44px] bg-primary-container hover:bg-[#1D4ED8] active:bg-[#1E40AF] text-white font-body-semibold text-body-semibold rounded-lg shadow-sm transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full h-[44px] bg-primary-container hover:bg-[#1D4ED8] active:bg-[#1E40AF] text-white font-body-semibold text-body-semibold rounded-lg shadow-sm transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           type="submit"
+          disabled={isLoading}
         >
-          <span>Log In</span>
-          <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+          {isLoading ? (
+            <>
+              <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+              <span>Signing in...</span>
+            </>
+          ) : (
+            <>
+              <span>Log In</span>
+              <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+            </>
+          )}
         </button>
 
         {/* Feedback helper / status banner */}

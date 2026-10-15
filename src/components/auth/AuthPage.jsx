@@ -1,9 +1,49 @@
+import { useState } from 'react'
 import AuthBrandPanel from './AuthBrandPanel'
 import LoginForm from './LoginForm'
 import SignupForm from './SignupForm'
 import OtpVerificationForm from './OtpVerificationForm'
 
-export default function AuthPage({ currentAuthTab, setCurrentAuthTab, onNavigateHome, onVerifiedSuccess }) {
+export default function AuthPage({
+  currentAuthTab,
+  setCurrentAuthTab,
+  onNavigateHome,
+  onVerifiedSuccess,
+  onLoginSuccess,
+}) {
+  const [registeredEmail, setRegisteredEmail] = useState(
+    () => localStorage.getItem('resumint_email') || 'vraj@yopmail.com'
+  )
+  const [registeredUserId, setRegisteredUserId] = useState(
+    () => localStorage.getItem('resumint_user_id') || ''
+  )
+
+  const handleAuthTransitionToOtp = (data) => {
+    if (data?.email) {
+      setRegisteredEmail(data.email)
+      localStorage.setItem('resumint_email', data.email)
+    }
+    const uid = data?.user?.id || data?.id || data?.user_id
+    if (uid) {
+      setRegisteredUserId(uid)
+      localStorage.setItem('resumint_user_id', uid)
+    }
+    setCurrentAuthTab('otp')
+  }
+
+  const handleLoginSubmit = (loginData) => {
+    const user = loginData?.user || loginData
+    if (user?.is_verified) {
+      if (onLoginSuccess) {
+        onLoginSuccess(loginData)
+      } else if (onVerifiedSuccess) {
+        onVerifiedSuccess(loginData)
+      }
+    } else {
+      handleAuthTransitionToOtp(loginData)
+    }
+  }
+
   return (
     <div className="bg-[#F5F8FC] text-on-surface h-full flex flex-col antialiased selection:bg-primary-fixed selection:text-on-primary-fixed min-h-screen">
       <div className="min-h-full flex flex-col lg:flex-row w-full flex-1">
@@ -75,19 +115,21 @@ export default function AuthPage({ currentAuthTab, setCurrentAuthTab, onNavigate
             {currentAuthTab === 'login' && (
               <LoginForm
                 onSwitchToSignup={() => setCurrentAuthTab('signup')}
-                onSubmitLogin={() => setCurrentAuthTab('otp')}
+                onSubmitLogin={handleLoginSubmit}
               />
             )}
 
             {currentAuthTab === 'signup' && (
               <SignupForm
                 onSwitchToLogin={() => setCurrentAuthTab('login')}
-                onSubmitSignup={() => setCurrentAuthTab('otp')}
+                onSubmitSignup={handleAuthTransitionToOtp}
               />
             )}
 
             {currentAuthTab === 'otp' && (
               <OtpVerificationForm
+                email={registeredEmail}
+                userId={registeredUserId}
                 onBackToLogin={() => setCurrentAuthTab('login')}
                 onVerifiedSuccess={onVerifiedSuccess}
               />

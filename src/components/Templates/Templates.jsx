@@ -1,7 +1,7 @@
 export default function Templates() {
   return (
-    <section className="py-20 bg-white border-y border-[#DCE5F0]" id="templates">
-      <div className="max-w-[1440px] mx-auto px-space-lg md:px-margin">
+    <section className="py-14 sm:py-20 bg-white border-y border-[#DCE5F0]" id="templates">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 md:px-margin">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-14 gap-4">
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EFF6FF] text-primary-container text-badge-label font-badge-label mb-2">

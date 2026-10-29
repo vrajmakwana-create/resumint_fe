@@ -31,7 +31,7 @@ export default function ProfileSettingsPage({ onNavigate, onLogout }) {
         <AppTopbar onNavigate={onNavigate} />
 
         {/* WORKSPACE */}
-        <main className="flex-1 overflow-y-auto p-6 lg:p-8 space-y-6">
+        <main className="flex-1 overflow-y-auto px-4 py-5 sm:p-6 lg:p-8 space-y-6">
           <div className="max-w-[1140px] mx-auto space-y-6">
             {/* Header & Primary Actions */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-2 border-b border-[#DCE5F0]/60">

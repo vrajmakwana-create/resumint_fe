@@ -1,8 +1,8 @@
 export default function CtaSection({ onGetStarted }) {
   return (
-    <section className="py-16 md:py-24 bg-white border-t border-[#DCE5F0]">
-      <div className="max-w-[1440px] mx-auto px-space-lg md:px-margin">
-        <div className="rounded-2xl bg-gradient-to-br from-[#102544] to-[#1E3A8A] text-white p-8 md:p-16 relative overflow-hidden shadow-xl">
+    <section className="py-14 sm:py-20 md:py-24 bg-white border-t border-[#DCE5F0]">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 md:px-margin">
+        <div className="rounded-2xl bg-gradient-to-br from-[#102544] to-[#1E3A8A] text-white p-6 sm:p-8 md:p-16 relative overflow-hidden shadow-xl">
           {/* Ambient decorative light spot */}
           <div className="absolute -right-16 -top-16 w-80 h-80 bg-primary-container/30 rounded-full blur-3xl pointer-events-none"></div>
 

@@ -1,18 +1,18 @@
 export default function ResumePreviewCard() {
   return (
-    <div className="relative bg-white rounded-xl border border-[#DCE5F0] custom-shadow-elevated p-6 md:p-8 max-w-[560px] mx-auto lg:mr-0 transition-transform duration-300">
+    <div className="relative bg-white rounded-xl border border-[#DCE5F0] custom-shadow-elevated p-4 sm:p-6 md:p-8 max-w-[560px] w-full mx-auto lg:mr-0 transition-transform duration-300">
       {/* Document Header */}
-      <div className="border-b border-[#DCE5F0] pb-5">
-        <div className="flex justify-between items-start">
+      <div className="border-b border-[#DCE5F0] pb-4 sm:pb-5">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-4">
           <div>
-            <h2 className="font-headline-section text-headline-section font-bold text-[#14243B]">
+            <h2 className="font-headline-section text-lg sm:text-headline-section font-bold text-[#14243B]">
               Alex Morgan
             </h2>
-            <p className="font-body-semibold text-body-semibold text-primary-container mt-0.5">
+            <p className="font-body-semibold text-xs sm:text-body-semibold text-primary-container mt-0.5">
               Senior Product Designer
             </p>
           </div>
-          <div className="text-right text-[11px] font-caption-helper text-[#64748B] leading-tight space-y-0.5">
+          <div className="text-left sm:text-right text-[11px] font-caption-helper text-[#64748B] leading-tight space-y-0.5 break-all sm:break-normal">
             <div>San Francisco, CA</div>
             <div className="text-primary-container font-medium">alex.morgan@design.io</div>
             <div>portfolio.alexmorgan.design</div>
@@ -40,11 +40,11 @@ export default function ResumePreviewCard() {
 
         {/* Role 1 */}
         <div className="mb-3">
-          <div className="flex justify-between items-baseline">
-            <span className="font-body-semibold text-body-semibold text-[#14243B]">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-0.5 sm:gap-2">
+            <span className="font-body-semibold text-xs sm:text-body-semibold text-[#14243B]">
               Lead UX Architect • Watershed Systems
             </span>
-            <span className="text-[11px] text-[#64748B]">2021 – Present</span>
+            <span className="text-[11px] text-[#64748B] shrink-0">2021 – Present</span>
           </div>
           <ul className="mt-1 space-y-1 text-caption-helper font-body-default text-[#434655] list-disc list-inside">
             <li>Spearheaded multi-tenant cloud dashboard redesign, lifting trial-to-paid conversion by 22%.</li>
@@ -54,11 +54,11 @@ export default function ResumePreviewCard() {
 
         {/* Role 2 */}
         <div>
-          <div className="flex justify-between items-baseline">
-            <span className="font-body-semibold text-body-semibold text-[#14243B]">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-0.5 sm:gap-2">
+            <span className="font-body-semibold text-xs sm:text-body-semibold text-[#14243B]">
               Senior Product Designer • Helix Fintech
             </span>
-            <span className="text-[11px] text-[#64748B]">2018 – 2021</span>
+            <span className="text-[11px] text-[#64748B] shrink-0">2018 – 2021</span>
           </div>
           <ul className="mt-1 space-y-1 text-caption-helper font-body-default text-[#434655] list-disc list-inside">
             <li>Synthesized research findings across 48 customer interviews into actionable checkout improvements.</li>

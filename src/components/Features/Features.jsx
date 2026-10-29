@@ -2,8 +2,8 @@ import FeatureCard from './FeatureCard'
 
 export default function Features() {
   return (
-    <section className="py-20 bg-white border-y border-[#DCE5F0]" id="features">
-      <div className="max-w-[1440px] mx-auto px-space-lg md:px-margin">
+    <section className="py-14 sm:py-20 bg-white border-y border-[#DCE5F0]" id="features">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 md:px-margin">
         <div className="text-center max-w-2xl mx-auto mb-14">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EFF6FF] text-primary-container text-badge-label font-badge-label mb-3">
             <span>CORE INTELLIGENCE</span>

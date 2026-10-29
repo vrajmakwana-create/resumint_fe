@@ -2,8 +2,8 @@ import StepCard from './StepCard'
 
 export default function HowItWorks() {
   return (
-    <section className="py-20 md:py-28 bg-[#F5F8FC]" id="how-it-works">
-      <div className="max-w-[1440px] mx-auto px-space-lg md:px-margin">
+    <section className="py-14 sm:py-20 md:py-28 bg-[#F5F8FC]" id="how-it-works">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 md:px-margin">
         <div className="text-center max-w-xl mx-auto mb-16">
           <h2 className="font-headline-section text-headline-section md:text-[32px] md:leading-[40px] text-[#14243B] font-bold">
             Three Steps to Interview Readiness

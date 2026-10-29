@@ -17,7 +17,7 @@ export default function DashboardPage({ onNavigate, onLogout }) {
         <AppTopbar onNavigate={onNavigate} />
 
         {/* SCROLLABLE CANVAS */}
-        <main className="flex-1 overflow-y-auto px-6 lg:px-8 py-7">
+        <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-7">
           <div className="max-w-[1360px] mx-auto space-y-7">
             {/* DASHBOARD HEADER */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

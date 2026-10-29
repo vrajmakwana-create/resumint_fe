@@ -1,10 +1,10 @@
 export default function Footer() {
   return (
     <footer className="bg-surface-container-lowest border-t border-outline-variant">
-      <div className="w-full px-space-lg md:px-margin max-w-[1440px] mx-auto py-space-2xl">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
+      <div className="w-full px-4 sm:px-6 md:px-margin max-w-[1440px] mx-auto py-10 sm:py-space-2xl">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-8 mb-12">
           {/* Brand Identity Column */}
-          <div className="col-span-2">
+          <div className="col-span-1 sm:col-span-2">
             <a
               className="text-headline-section font-headline-section font-bold text-on-surface flex items-center gap-space-xs text-[#102544] mb-3"
               href="#"

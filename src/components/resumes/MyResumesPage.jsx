@@ -63,7 +63,7 @@ export default function MyResumesPage({ onNavigate, onLogout }) {
         {/* CONTENT */}
         <main className="flex-1 flex flex-col overflow-hidden bg-[#F5F8FC]">
           {/* Header Banner */}
-          <section className="bg-white border-b border-[#DCE5F0] px-8 py-5 shrink-0">
+          <section className="bg-white border-b border-[#DCE5F0] px-4 sm:px-6 lg:px-8 py-4 sm:py-5 shrink-0">
             <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
@@ -102,7 +102,7 @@ export default function MyResumesPage({ onNavigate, onLogout }) {
           </section>
 
           {/* Body Canvas */}
-          <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
             <div className="max-w-[1440px] mx-auto space-y-6">
               {/* Filter & Stats Row */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-[#DCE5F0] shadow-sm">

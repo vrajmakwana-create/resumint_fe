@@ -1,6 +1,6 @@
 export default function MatchScoreOverlay() {
   return (
-    <div className="absolute -bottom-6 -right-3 md:-right-6 bg-white rounded-xl border border-primary-container/20 custom-shadow-elevated p-4 w-72 md:w-80 backdrop-blur-md">
+    <div className="relative sm:absolute sm:-bottom-6 sm:-right-4 md:-right-6 mt-4 sm:mt-0 bg-white rounded-xl border border-primary-container/20 custom-shadow-elevated p-4 w-full sm:w-80 backdrop-blur-md max-w-full">
       <div className="flex items-center gap-3 pb-3 border-b border-[#DCE5F0]">
         {/* Progress Ring */}
         <div className="relative w-12 h-12 flex-shrink-0 flex items-center justify-center">

@@ -79,6 +79,8 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
   const [isSaving, setIsSaving] = useState(false)
   const [apiFeedback, setApiFeedback] = useState(null)
   const [showCongratsModal, setShowCongratsModal] = useState(false)
+  const [isMobilePreviewOpen, setIsMobilePreviewOpen] = useState(false)
+  const [isMobileStepsOpen, setIsMobileStepsOpen] = useState(false)
 
   const [resumeData, setResumeData] = useState(() => {
     try {
@@ -551,21 +553,21 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
   return (
     <div className="h-screen bg-[#F5F8FC] text-[#14243B] font-body-default flex flex-col antialiased selection:bg-[#2563EB]/20 selection:text-[#102544] overflow-hidden">
       {/* TOP BAR (Global Workspace Header) */}
-      <header className="h-16 bg-white border-b border-[#DCE5F0] px-6 flex items-center justify-between shrink-0 z-30 select-none">
+      <header className="h-16 bg-white border-b border-[#DCE5F0] px-3 sm:px-6 flex items-center justify-between shrink-0 z-30 select-none">
         {/* Left: Brand, Divider, Active Resume Title & Target Pill */}
-        <div className="flex items-center gap-4">
-          <div onClick={onExitSetup} className="flex items-center gap-2 cursor-pointer group">
+        <div className="flex items-center gap-2 sm:gap-4 overflow-hidden">
+          <div onClick={onExitSetup} className="flex items-center gap-2 cursor-pointer group shrink-0">
             <div className="w-8 h-8 rounded-lg bg-[#2563EB] flex items-center justify-center text-white shadow-sm transition-transform group-hover:scale-105">
               <span className="material-symbols-outlined text-[19px]">assignment_turned_in</span>
             </div>
-            <span className="font-headline-section text-[19px] font-bold text-[#102544] tracking-tight">
+            <span className="font-headline-section text-[17px] sm:text-[19px] font-bold text-[#102544] tracking-tight hidden xs:inline">
               Resumint
             </span>
           </div>
 
-          <div className="h-5 w-[1px] bg-[#DCE5F0]" />
+          <div className="h-5 w-[1px] bg-[#DCE5F0] hidden sm:block shrink-0" />
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 truncate">
             {isEditingTitle ? (
               <input
                 type="text"
@@ -574,22 +576,22 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
                 onBlur={() => setIsEditingTitle(false)}
                 onKeyDown={(e) => e.key === 'Enter' && setIsEditingTitle(false)}
                 onChange={(e) => setResumeTitle(e.target.value)}
-                className="font-body-semibold text-[14px] text-[#14243B] border border-[#2563EB] rounded px-2 py-0.5 outline-none"
+                className="font-body-semibold text-[13px] sm:text-[14px] text-[#14243B] border border-[#2563EB] rounded px-2 py-0.5 outline-none max-w-[150px] sm:max-w-none"
               />
             ) : (
               <div
                 onClick={() => setIsEditingTitle(true)}
-                className="flex items-center gap-1.5 group cursor-pointer"
+                className="flex items-center gap-1.5 group cursor-pointer truncate"
               >
-                <span className="font-body-semibold text-[14px] text-[#14243B] group-hover:text-[#2563EB] transition-colors">
+                <span className="font-body-semibold text-[13px] sm:text-[14px] text-[#14243B] group-hover:text-[#2563EB] transition-colors truncate max-w-[120px] sm:max-w-[200px] md:max-w-none">
                   {resumeTitle}
                 </span>
-                <span className="material-symbols-outlined text-[16px] text-[#64748B] group-hover:text-[#2563EB] transition-colors">
+                <span className="material-symbols-outlined text-[16px] text-[#64748B] group-hover:text-[#2563EB] transition-colors shrink-0">
                   edit
                 </span>
               </div>
             )}
-            <span className="bg-[#EFF6FF] text-[#2563EB] border border-[#2563EB]/20 px-2.5 py-0.5 rounded-full font-badge-label text-[11px] font-semibold tracking-wide uppercase">
+            <span className="bg-[#EFF6FF] text-[#2563EB] border border-[#2563EB]/20 px-2.5 py-0.5 rounded-full font-badge-label text-[11px] font-semibold tracking-wide uppercase shrink-0 hidden xl:inline">
               Target: Senior/Lead Roles
             </span>
           </div>
@@ -598,7 +600,7 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
         {/* Center: Interactive Cloud Save Status */}
         <div
           onClick={() => setSaveState((prev) => (prev + 1) % 3)}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F5F8FC] border border-[#DCE5F0] text-[13px] font-medium text-[#64748B] cursor-pointer hover:border-[#CBD5E1] transition-all"
+          className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F5F8FC] border border-[#DCE5F0] text-[13px] font-medium text-[#64748B] cursor-pointer hover:border-[#CBD5E1] transition-all shrink-0"
         >
           <span
             className={`w-2 h-2 rounded-full ${
@@ -622,31 +624,40 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
         </div>
 
         {/* Right: Preview Resume & Exit Setup Actions */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <ThemeToggle />
           <button
+            onClick={() => setIsMobilePreviewOpen(true)}
+            className="xl:hidden h-[36px] sm:h-[40px] px-2.5 rounded-lg border border-[#DCE5F0] bg-white text-[#102544] font-body-semibold text-xs flex items-center gap-1 hover:bg-[#F8FAFC] transition-colors shadow-sm cursor-pointer"
+            type="button"
+            title="Preview Resume"
+          >
+            <span className="material-symbols-outlined text-[18px]">visibility</span>
+            <span className="hidden sm:inline">Preview</span>
+          </button>
+          <button
             onClick={() => alert('Opening full screen high-resolution preview...')}
-            className="h-[44px] px-4 rounded-lg border border-[#DCE5F0] bg-white text-[#102544] font-body-semibold text-body-semibold flex items-center gap-2 hover:bg-[#F8FAFC] hover:border-[#CBD5E1] transition-colors shadow-sm cursor-pointer"
+            className="hidden xl:flex h-[40px] px-3.5 rounded-lg border border-[#DCE5F0] bg-white text-[#102544] font-body-semibold text-xs items-center gap-2 hover:bg-[#F8FAFC] hover:border-[#CBD5E1] transition-colors shadow-sm cursor-pointer"
             type="button"
           >
             <span className="material-symbols-outlined text-[18px]">visibility</span>
-            <span>Preview Resume</span>
+            <span>Preview</span>
           </button>
           <button
             onClick={onExitSetup}
-            className="h-[44px] px-4 rounded-lg flex items-center gap-1.5 text-[#64748B] font-body-semibold text-body-semibold hover:text-[#102544] hover:bg-[#EFF6FF] transition-colors cursor-pointer"
+            className="h-[36px] sm:h-[40px] px-2.5 sm:px-3 rounded-lg flex items-center gap-1 text-[#64748B] font-body-semibold text-xs hover:text-[#102544] hover:bg-[#EFF6FF] transition-colors cursor-pointer"
             type="button"
           >
-            <span>Exit Setup</span>
+            <span className="hidden sm:inline">Exit Setup</span>
             <span className="material-symbols-outlined text-[18px]">close</span>
           </button>
         </div>
       </header>
 
       {/* WORKSPACE BODY (3-Column Layout: Sidebar, Form Canvas, Live Preview) */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* A. EDITOR STEP SIDEBAR (Fixed Width 260px) */}
-        <aside className="w-[260px] bg-white border-r border-[#DCE5F0] flex flex-col justify-between shrink-0 select-none">
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* A. EDITOR STEP SIDEBAR (Hidden on mobile/tablet, shown on lg+) */}
+        <aside className="hidden lg:flex w-[260px] bg-white border-r border-[#DCE5F0] flex-col justify-between shrink-0 select-none">
           <div className="p-4 flex flex-col gap-5 overflow-y-auto custom-scrollbar">
             {/* Progress Header */}
             <div className="space-y-2">
@@ -736,18 +747,43 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
         </aside>
 
         {/* B. MAIN FORM WORKSPACE (Flex-1 scrollable) */}
-        <main className="flex-1 overflow-y-auto bg-[#F5F8FC] p-8 custom-scrollbar">
+        <main className="flex-1 overflow-y-auto bg-[#F5F8FC] p-3.5 sm:p-6 md:p-8 custom-scrollbar">
           <div className="max-w-[760px] mx-auto pb-12">
+            {/* Mobile Step Selector Banner (visible on < lg) */}
+            <div className="lg:hidden mb-4 bg-white p-3 rounded-xl border border-[#DCE5F0] shadow-sm flex items-center justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="font-bold text-[#14243B] truncate">
+                    Step {currentStep} of 6: {stepMeta.title}
+                  </span>
+                  <span className="text-[#2563EB] font-semibold ml-2 shrink-0">{progressPercent}%</span>
+                </div>
+                <div className="w-full bg-[#E2E8F0] h-1.5 rounded-full overflow-hidden">
+                  <div
+                    className="bg-[#2563EB] h-full rounded-full transition-all duration-300"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+              </div>
+              <button
+                onClick={() => setIsMobileStepsOpen(true)}
+                className="h-8 px-2.5 rounded-lg border border-[#DCE5F0] text-xs font-semibold text-[#2563EB] bg-[#EFF6FF] hover:bg-[#DBEAFE] shrink-0"
+                type="button"
+              >
+                Sections
+              </button>
+            </div>
+
             {/* Step Header */}
-            <div className="mb-6">
+            <div className="mb-5 sm:mb-6">
               <div className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-wider uppercase text-[#2563EB] mb-1.5">
                 <span className="material-symbols-outlined text-[14px]">flag</span>
                 <span>{stepMeta.eyebrow}</span>
               </div>
-              <h1 className="font-headline-page text-[30px] font-bold text-[#14243B] tracking-tight leading-tight">
+              <h1 className="font-headline-page text-[24px] sm:text-[30px] font-bold text-[#14243B] tracking-tight leading-tight">
                 {stepMeta.title}
               </h1>
-              <p className="text-[15px] font-body-default text-[#64748B] mt-1">{stepMeta.subtitle}</p>
+              <p className="text-xs sm:text-[15px] font-body-default text-[#64748B] mt-1">{stepMeta.subtitle}</p>
             </div>
 
             {/* API Feedback Notification */}
@@ -776,7 +812,7 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
             )}
 
             {/* Main Form White Card */}
-            <div className="bg-white rounded-xl border border-[#DCE5F0] p-8 shadow-sm">
+            <div className="bg-white rounded-xl border border-[#DCE5F0] p-4 sm:p-6 md:p-8 shadow-sm">
               <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
                 {currentStep === 1 && (
                   <Step1PersonalInfo data={resumeData} onChange={handleFieldChange} />
@@ -802,7 +838,7 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
                   <button
                     onClick={handlePrev}
                     disabled={currentStep === 1}
-                    className={`h-[44px] px-6 rounded-lg border border-[#DCE5F0] text-[#14243B] font-body-semibold text-[14px] bg-white hover:bg-[#F8FAFC] hover:border-[#CBD5E1] flex items-center gap-2 transition-all shadow-sm ${
+                    className={`h-[40px] sm:h-[44px] px-4 sm:px-6 rounded-lg border border-[#DCE5F0] text-[#14243B] font-body-semibold text-[13px] sm:text-[14px] bg-white hover:bg-[#F8FAFC] hover:border-[#CBD5E1] flex items-center gap-1.5 transition-all shadow-sm ${
                       currentStep === 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                     }`}
                     type="button"
@@ -811,12 +847,12 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
                     <span>Back</span>
                   </button>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 sm:gap-3">
                     <button
                       onClick={handleSaveCurrentStep}
                       disabled={isSaving}
                       type="button"
-                      className="h-[44px] px-5 rounded-lg border border-[#2563EB] bg-[#EFF6FF] hover:bg-[#2563EB] text-[#2563EB] hover:text-white font-body-semibold text-[14px] flex items-center gap-2 transition-all cursor-pointer shadow-sm"
+                      className="h-[40px] sm:h-[44px] px-3.5 sm:px-5 rounded-lg border border-[#2563EB] bg-[#EFF6FF] hover:bg-[#2563EB] text-[#2563EB] hover:text-white font-body-semibold text-[13px] sm:text-[14px] flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
                     >
                       <span className="material-symbols-outlined text-[18px]">save</span>
                       <span>{isSaving ? 'Saving...' : `Save ${stepMeta.title.split(' ')[0]}`}</span>
@@ -825,12 +861,12 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
                     <button
                       onClick={handleNext}
                       disabled={isSaving}
-                      className={`h-[44px] px-7 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-body-semibold text-[14px] flex items-center gap-2 shadow-sm transition-all active:scale-[0.99] ${
+                      className={`h-[40px] sm:h-[44px] px-4 sm:px-7 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-body-semibold text-[13px] sm:text-[14px] flex items-center gap-1.5 shadow-sm transition-all active:scale-[0.99] ${
                         isSaving ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'
                       }`}
                       type="button"
                     >
-                      <span>{isSaving ? 'Saving...' : stepMeta.nextBtn}</span>
+                      <span className="truncate max-w-[130px] sm:max-w-none">{isSaving ? 'Saving...' : stepMeta.nextBtn}</span>
                       {isSaving ? (
                         <span className="material-symbols-outlined text-[18px] animate-spin">sync</span>
                       ) : (
@@ -844,9 +880,90 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
           </div>
         </main>
 
-        {/* C. COMPACT LIVE RESUME PREVIEW PANEL */}
-        <ResumePreviewPane resumeData={resumeData} currentStep={currentStep} />
+        {/* C. COMPACT LIVE RESUME PREVIEW PANEL (Desktop: static, Mobile/Tablet: slide-over modal) */}
+        <div className="hidden xl:flex h-full">
+          <ResumePreviewPane resumeData={resumeData} currentStep={currentStep} />
+        </div>
       </div>
+
+      {/* MOBILE SECTIONS DRAWER (for screens < lg) */}
+      {isMobileStepsOpen && (
+        <div className="fixed inset-0 z-50 bg-[#102544]/60 backdrop-blur-sm flex justify-start animate-fadeIn select-none lg:hidden">
+          <div className="w-full max-w-[280px] bg-white h-full shadow-2xl flex flex-col relative overflow-hidden">
+            <div className="h-14 px-4 bg-[#F8FAFC] border-b border-[#DCE5F0] flex items-center justify-between shrink-0">
+              <span className="font-headline-section font-bold text-sm text-[#102544]">Resume Sections</span>
+              <button
+                onClick={() => setIsMobileStepsOpen(false)}
+                className="p-1 rounded-lg text-[#64748B] hover:text-[#102544]"
+                type="button"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+            <div className="flex-1 p-3 overflow-y-auto space-y-1">
+              {stepsConfig.map((s) => {
+                const isActive = s.id === currentStep
+                const isCompleted = completedSteps.includes(s.id) && !isActive
+                const isAccessible =
+                  s.id <= currentStep ||
+                  s.id === currentStep + 1 ||
+                  completedSteps.includes(s.id) ||
+                  completedSteps.includes(s.id - 1)
+
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => {
+                      handleStepClick(s.id)
+                      setIsMobileStepsOpen(false)
+                    }}
+                    type="button"
+                    disabled={!isAccessible || isSaving}
+                    className={`w-full text-left flex items-center justify-between px-3 py-2.5 rounded-lg border-l-[3px] transition-all font-body-semibold text-[13px] ${
+                      isActive
+                        ? 'border-[#2563EB] bg-[#EFF6FF] text-[#2563EB]'
+                        : isAccessible
+                        ? 'border-transparent text-[#64748B] hover:text-[#14243B] hover:bg-[#F8FAFC]'
+                        : 'border-transparent text-[#CBD5E1] opacity-60'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 truncate">
+                      <span className={`material-symbols-outlined text-[18px] ${isActive ? 'text-[#2563EB]' : 'text-[#94A3B8]'}`}>
+                        {s.icon}
+                      </span>
+                      <span className="truncate">{s.title}</span>
+                    </div>
+                    {isCompleted && (
+                      <span className="material-symbols-outlined text-[16px] text-[#16A34A]">check</span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MOBILE LIVE RESUME PREVIEW MODAL (for screens < xl) */}
+      {isMobilePreviewOpen && (
+        <div className="fixed inset-0 z-50 bg-[#102544]/60 backdrop-blur-sm flex justify-end animate-fadeIn select-none xl:hidden">
+          <div className="w-full max-w-lg bg-white h-full shadow-2xl flex flex-col relative overflow-hidden">
+            <div className="h-14 px-4 bg-[#F8FAFC] border-b border-[#DCE5F0] flex items-center justify-between shrink-0">
+              <span className="font-headline-section font-bold text-sm text-[#102544]">Live Resume Preview</span>
+              <button
+                onClick={() => setIsMobilePreviewOpen(false)}
+                className="p-1 rounded-lg text-[#64748B] hover:text-[#102544]"
+                type="button"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <ResumePreviewPane resumeData={resumeData} currentStep={currentStep} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* CONGRATULATIONS SUCCESS MODAL */}
       {showCongratsModal && (

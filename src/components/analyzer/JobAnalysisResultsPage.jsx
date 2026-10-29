@@ -187,7 +187,7 @@ export default function JobAnalysisResultsPage({ onNavigate, onLogout }) {
         <AppTopbar onNavigate={onNavigate} />
 
         {/* WORKSPACE */}
-        <main className="flex-1 overflow-y-auto px-6 lg:px-8 py-6 max-w-[1440px] w-full mx-auto space-y-6">
+        <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 max-w-[1440px] w-full mx-auto space-y-6">
           {errorMsg && (
             <div className="p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs flex items-center justify-between">
               <span>{errorMsg} (Displaying cached preview data)</span>

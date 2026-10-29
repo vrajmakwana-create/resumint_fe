@@ -2,8 +2,8 @@ import AuditShowcase from './AuditShowcase'
 
 export default function AtsAudit() {
   return (
-    <section className="py-20 md:py-28 bg-[#F5F8FC]">
-      <div className="max-w-[1440px] mx-auto px-space-lg md:px-margin">
+    <section className="py-14 sm:py-20 md:py-28 bg-[#F5F8FC]">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 md:px-margin">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           {/* Interactive Audit UI Showcase */}
           <AuditShowcase />

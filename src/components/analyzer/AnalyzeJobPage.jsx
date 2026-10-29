@@ -62,7 +62,7 @@ export default function AnalyzeJobPage({ onNavigate, onLogout, onAnalysisDone })
         <AppTopbar onNavigate={onNavigate} />
 
         {/* WORKSPACE */}
-        <main className="flex-1 overflow-y-auto px-6 lg:px-8 py-8">
+        <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8">
           <div className="max-w-4xl mx-auto space-y-6 pb-12">
             {/* Main Content Heading */}
             <div className="flex flex-col space-y-1">

@@ -78,19 +78,19 @@ export default function OnboardingPage({ onStartScratch, onUploadResume, onSignO
       />
 
       {/* TOP BAR (Focused Setup Shell) */}
-      <header className="bg-white border-b border-[#DCE5F0] h-[72px] w-full sticky top-0 z-50">
-        <div className="max-w-[1440px] mx-auto px-space-md md:px-margin h-full flex items-center justify-between">
+      <header className="bg-white border-b border-[#DCE5F0] h-[64px] sm:h-[72px] w-full sticky top-0 z-50">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 md:px-margin h-full flex items-center justify-between">
           {/* Left: Logo & Tag */}
-          <div className="flex items-center gap-space-sm">
-            <div className="w-10 h-10 rounded-lg bg-[#2563EB] flex items-center justify-center text-white shadow-sm">
-              <span className="material-symbols-outlined text-[24px]">task</span>
+          <div className="flex items-center gap-2 sm:gap-space-sm">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-[#2563EB] flex items-center justify-center text-white shadow-sm shrink-0">
+              <span className="material-symbols-outlined text-[20px] sm:text-[24px]">task</span>
             </div>
             <div className="flex flex-col">
-              <div className="flex items-center gap-space-xs">
-                <span className="font-headline-section text-headline-section font-bold tracking-tight text-[#102544]">
+              <div className="flex items-center gap-1.5">
+                <span className="font-headline-section text-base sm:text-headline-section font-bold tracking-tight text-[#102544]">
                   Resumint
                 </span>
-                <span className="bg-[#d6e3ff] text-[#344768] text-[10px] font-bold px-1.5 py-0.5 rounded tracking-wider">
+                <span className="bg-[#d6e3ff] text-[#344768] text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded tracking-wider hidden xs:inline">
                   AI CAREER PLATFORM
                 </span>
               </div>
@@ -108,7 +108,7 @@ export default function OnboardingPage({ onStartScratch, onUploadResume, onSignO
           </div>
 
           {/* Right: User Email / Support & Sign Out */}
-          <div className="flex items-center gap-space-md">
+          <div className="flex items-center gap-2 sm:gap-space-md">
             <button
               onClick={() => alert('Support team is ready to help you at support@resumint.ai')}
               className="hidden md:flex items-center gap-1 text-[#434655] hover:text-[#2563EB] transition-colors font-body-medium text-body-medium cursor-pointer"
@@ -130,7 +130,7 @@ export default function OnboardingPage({ onStartScratch, onUploadResume, onSignO
       </header>
 
       {/* MAIN ONBOARDING WORKSPACE */}
-      <main className="flex-grow flex items-center justify-center py-space-2xl px-space-md md:px-margin bg-[#F5F8FC]">
+      <main className="flex-grow flex items-center justify-center py-8 sm:py-space-2xl px-4 sm:px-6 md:px-margin bg-[#F5F8FC]">
         <div className="w-full max-w-[1020px] mx-auto">
           {/* Hero Section Header */}
           <div className="text-center max-w-2xl mx-auto mb-space-xl">

@@ -149,7 +149,7 @@ export default function AnalysisHistoryPage({ onNavigate, onLogout }) {
         <AppTopbar onNavigate={onNavigate} />
 
         {/* WORKSPACE */}
-        <main className="flex-1 overflow-y-auto px-6 lg:px-8 py-6 max-w-[1440px] w-full mx-auto space-y-6">
+        <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 max-w-[1440px] w-full mx-auto space-y-6">
           {/* Breadcrumbs */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#EFF6FF] border border-[#DCE5F0] text-[11px] font-body-semibold text-[#102544]">

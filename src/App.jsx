@@ -254,7 +254,7 @@ export default function App() {
   const effectiveAuthTab = PROTECTED_VIEWS.has(currentView) && !isAuthenticated ? 'login' : currentAuthTab
 
   return (
-    <div className="bg-[#F5F8FC] text-[#14243B] font-body-default text-body-default antialiased selection:bg-primary-fixed selection:text-on-primary-fixed min-h-screen relative">
+    <div className="bg-[#F5F8FC] text-[#14243B] font-body-default text-body-default antialiased selection:bg-primary-fixed selection:text-on-primary-fixed min-h-screen relative w-full overflow-x-hidden">
       {/* 1. PUBLIC LANDING PAGE */}
       {effectiveView === 'landing' && (
         <>

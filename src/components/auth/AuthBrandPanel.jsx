@@ -1,6 +1,6 @@
 export default function AuthBrandPanel({ onNavigateHome }) {
   return (
-    <section className="lg:w-1/2 bg-[#102544] relative overflow-hidden flex flex-col justify-between p-space-lg lg:p-margin xl:p-space-2xl text-white order-2 lg:order-1 min-h-[560px] lg:min-h-screen">
+    <section className="hidden lg:flex lg:w-1/2 bg-[#102544] relative overflow-hidden flex-col justify-between p-space-lg lg:p-margin xl:p-space-2xl text-white order-2 lg:order-1 min-h-[560px] lg:min-h-screen">
       {/* Subtle Decorative Atmospheric Glows */}
       <div className="absolute inset-0 glow-radial pointer-events-none"></div>
       <div className="absolute -top-32 -left-32 w-96 h-96 bg-primary-container/20 rounded-full blur-3xl pointer-events-none"></div>

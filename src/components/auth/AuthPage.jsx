@@ -51,7 +51,7 @@ export default function AuthPage({
         <AuthBrandPanel onNavigateHome={onNavigateHome} />
 
         {/* RIGHT PANEL: Authentication Form Area */}
-        <main className="lg:w-1/2 bg-white flex flex-col justify-center items-center p-space-md sm:p-space-lg md:p-margin lg:p-space-xl border-l border-[#DCE5F0] order-1 lg:order-2 min-h-screen">
+        <main className="w-full lg:w-1/2 bg-white flex flex-col justify-center items-center p-4 sm:p-space-lg md:p-margin lg:p-space-xl border-l border-[#DCE5F0] order-1 lg:order-2 min-h-screen">
           {/* Responsive Mobile-Only Header Brand Bar */}
           <div className="w-full max-w-[440px] flex items-center justify-between pb-space-md mb-space-md border-b border-[#DCE5F0] lg:hidden">
             <button

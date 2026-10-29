@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import AppSidebar from '../common/AppSidebar'
 import AppTopbar from '../common/AppTopbar'
+import ThemeToggle from '../common/ThemeToggle'
 
 export default function ProfileSettingsPage({ onNavigate, onLogout }) {
   const [activeTab, setActiveTab] = useState('general')
@@ -259,6 +260,21 @@ export default function ProfileSettingsPage({ onNavigate, onLogout }) {
                       </div>
                     </div>
                   </form>
+                </section>
+
+                {/* Interface Theme & Appearance */}
+                <section className="bg-white border border-[#DCE5F0] rounded-xl p-6 shadow-sm space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <h3 className="font-headline-card text-headline-card text-[#14243B]">
+                        Interface Appearance &amp; Color Mode
+                      </h3>
+                      <p className="text-xs text-[#64748B] mt-0.5">
+                        Customize how Resumint looks on your screen. Select Light, Dark, or sync automatically with your system settings.
+                      </p>
+                    </div>
+                    <ThemeToggle variant="segmented" />
+                  </div>
                 </section>
 
                 {/* Career Goals & Search Parameters */}

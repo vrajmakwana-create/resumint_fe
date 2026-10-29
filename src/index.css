@@ -16,6 +16,7 @@
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 }
 
@@ -40,4 +41,250 @@
 
 .glow-radial {
   background: radial-gradient(circle at 50% 40%, rgba(37, 99, 235, 0.28) 0%, rgba(16, 37, 68, 0) 70%);
+}
+
+/* ==========================================================================
+   DARK MODE COLOR PALETTE SYSTEM SPECIFICATION
+   Note: Light mode colors remain 100% untouched and original.
+   ========================================================================== */
+
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark,
+html.dark body {
+  background-color: #0B1120;
+  color: #F1F5F9;
+}
+
+/* 1. Surfaces & Backgrounds */
+html.dark .bg-\[\#F5F8FC\],
+html.dark .bg-\[\#f5f8fc\],
+html.dark .bg-surface,
+html.dark .bg-surface-bright {
+  background-color: #0B1120 !important;
+}
+
+html.dark .bg-surface-container-lowest {
+  background-color: #111A2E !important;
+}
+
+html.dark .bg-white:not(.resume-paper-canvas),
+html.dark .bg-\[\#FFFFFF\]:not(.resume-paper-canvas),
+html.dark .bg-\[\#ffffff\]:not(.resume-paper-canvas) {
+  background-color: #151E32 !important;
+}
+
+html.dark .bg-\[\#F8FAFC\]:not(.resume-paper-canvas),
+html.dark .bg-\[\#f8fafc\]:not(.resume-paper-canvas),
+html.dark .bg-\[\#F1F5F9\],
+html.dark .bg-\[\#f1f5f9\],
+html.dark .bg-surface-container-low,
+html.dark .bg-surface-container {
+  background-color: #1A2438 !important;
+}
+
+html.dark .bg-\[\#EFF6FF\],
+html.dark .bg-\[\#eff6ff\] {
+  background-color: rgba(37, 99, 235, 0.16) !important;
+}
+
+html.dark .bg-\[\#E2E8F0\],
+html.dark .bg-\[\#e2e8f0\] {
+  background-color: #24334A !important;
+}
+
+/* Sidebar & Dark Navy Anchor Surfaces */
+html.dark .bg-\[\#102544\] {
+  background-color: #080D1A !important;
+}
+
+html.dark .bg-\[\#0C1D36\] {
+  background-color: #060A14 !important;
+}
+
+html.dark .bg-\[\#142C50\]\/80,
+html.dark .bg-\[\#142C50\] {
+  background-color: #111929 !important;
+}
+
+html.dark .bg-\[\#1E3A5F\]\/80,
+html.dark .bg-\[\#1E3A5F\] {
+  background-color: #1B2A45 !important;
+}
+
+/* Status / Badge Backgrounds */
+html.dark .bg-\[\#DCFCE7\],
+html.dark .bg-\[\#dcfce7\],
+html.dark .bg-\[\#F0FDF4\] {
+  background-color: rgba(22, 163, 74, 0.18) !important;
+}
+
+html.dark .bg-\[\#FEF2F2\],
+html.dark .bg-\[\#FECACA\],
+html.dark .bg-\[\#FFDAD6\] {
+  background-color: rgba(220, 38, 38, 0.18) !important;
+}
+
+html.dark .bg-\[\#FFFBEB\],
+html.dark .bg-\[\#FEF3C7\] {
+  background-color: rgba(217, 119, 6, 0.18) !important;
+}
+
+html.dark .bg-\[\#F3E8FF\],
+html.dark .bg-\[\#DDD6FE\] {
+  background-color: rgba(124, 58, 237, 0.18) !important;
+}
+
+/* 2. Borders & Dividers */
+html.dark .border-\[\#DCE5F0\],
+html.dark .border-\[\#dce5f0\],
+html.dark .border-\[\#E2E8F0\],
+html.dark .border-\[\#e2e8f0\],
+html.dark .border-\[\#CBD5E1\],
+html.dark .border-\[\#cbd5e1\],
+html.dark .border-outline-variant {
+  border-color: #24334A !important;
+}
+
+html.dark .border-\[\#1E3A5F\] {
+  border-color: #172338 !important;
+}
+
+html.dark .border-\[\#BFDBFE\] {
+  border-color: rgba(59, 130, 246, 0.3) !important;
+}
+
+html.dark .border-red-200,
+html.dark .border-red-300 {
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+html.dark .divide-\[\#DCE5F0\] > :not([hidden]) ~ :not([hidden]) {
+  border-color: #24334A !important;
+}
+
+html.dark .divide-\[\#E2E8F0\] > :not([hidden]) ~ :not([hidden]) {
+  border-color: #202C40 !important;
+}
+
+/* 3. Typography & Text Colors */
+html.dark .text-\[\#14243B\],
+html.dark .text-\[\#14243b\],
+html.dark .text-\[\#102544\],
+html.dark .text-on-surface {
+  color: #F1F5F9 !important;
+}
+
+html.dark .text-\[\#64748B\],
+html.dark .text-\[\#64748b\],
+html.dark .text-on-surface-variant,
+html.dark .text-\[\#434655\],
+html.dark .text-\[\#475569\] {
+  color: #94A3B8 !important;
+}
+
+html.dark .text-\[\#94A3B8\],
+html.dark .text-\[\#94a3b8\] {
+  color: #64748B !important;
+}
+
+html.dark .text-\[\#16A34A\],
+html.dark .text-\[\#15803D\] {
+  color: #4ADE80 !important;
+}
+
+html.dark .text-\[\#DC2626\],
+html.dark .text-\[\#B91C1C\],
+html.dark .text-\[\#991B1B\] {
+  color: #F87171 !important;
+}
+
+html.dark .text-\[\#D97706\],
+html.dark .text-\[\#B45309\],
+html.dark .text-\[\#92400E\] {
+  color: #FBBF24 !important;
+}
+
+html.dark .text-\[\#7C3AED\],
+html.dark .text-\[\#6B21A8\] {
+  color: #C084FC !important;
+}
+
+/* 4. Interactive Hovers & Active States */
+html.dark .hover\:bg-slate-50:hover,
+html.dark .hover\:bg-\[\#F1F5F9\]:hover,
+html.dark .hover\:bg-\[\#F8FAFC\]:hover,
+html.dark .hover\:bg-\[\#F1F4F8\]:hover {
+  background-color: #1E2A42 !important;
+}
+
+html.dark .hover\:text-\[\#14243B\]:hover,
+html.dark .hover\:text-\[\#102544\]:hover {
+  color: #FFFFFF !important;
+}
+
+/* 5. Inputs, Textareas, Selects */
+html.dark input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]),
+html.dark textarea,
+html.dark select {
+  background-color: #172134 !important;
+  color: #F1F5F9 !important;
+  border-color: #26354D !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #64748B !important;
+}
+
+/* 6. Shadows in Dark Mode */
+html.dark .custom-shadow-ambient,
+html.dark .custom-shadow-card {
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4), 0 2px 6px -1px rgba(0, 0, 0, 0.3) !important;
+}
+
+html.dark .custom-shadow-elevated {
+  box-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.6), 0 4px 10px -2px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* 7. Printable Live Resume Preview Sheet Protection (Realistic White Paper on Dark Desk) */
+html.dark .resume-paper-canvas,
+html.dark .resume-paper-canvas.bg-white {
+  background-color: #FFFFFF !important;
+  color: #14243B !important;
+  border-color: #CBD5E1 !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6) !important;
+}
+
+html.dark .resume-paper-canvas .text-\[\#102544\],
+html.dark .resume-paper-canvas .text-\[\#14243B\],
+html.dark .resume-paper-canvas h1,
+html.dark .resume-paper-canvas h2,
+html.dark .resume-paper-canvas h3 {
+  color: #14243B !important;
+}
+
+html.dark .resume-paper-canvas .text-\[\#64748B\],
+html.dark .resume-paper-canvas .text-\[\#434655\],
+html.dark .resume-paper-canvas p,
+html.dark .resume-paper-canvas li {
+  color: #475569 !important;
+}
+
+/* 8. Dark Scrollbars */
+html.dark ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+html.dark ::-webkit-scrollbar-track {
+  background: #0B1120;
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: #24334A;
+  border-radius: 4px;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #334563;
 }

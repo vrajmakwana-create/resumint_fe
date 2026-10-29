@@ -1,4 +1,5 @@
 import { getCurrentUser } from '../../services/api'
+import ThemeToggle from './ThemeToggle'
 
 export default function AppTopbar({ onNavigate, titleSearchPlaceholder = 'Search resumes, job descriptions, analysis...' }) {
   const user = getCurrentUser()
@@ -22,6 +23,9 @@ export default function AppTopbar({ onNavigate, titleSearchPlaceholder = 'Search
 
       {/* Top Right Actions */}
       <div className="flex items-center gap-3">
+        {/* Theme Toggle */}
+        <ThemeToggle />
+
         {/* Notification Bell */}
         <button
           onClick={() => alert('You have 2 pending ATS recommendations for Stripe.')}

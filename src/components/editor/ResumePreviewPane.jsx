@@ -69,7 +69,7 @@ export default function ResumePreviewPane({ resumeData, currentStep }) {
       {/* Preview Body (Miniature Document Canvas) */}
       <div className="flex-1 p-5 overflow-y-auto bg-[#F8FAFC] flex flex-col items-center custom-scrollbar">
         {/* Scaled Mini A4 Sheet Canvas */}
-        <div className="w-full bg-white rounded-lg border border-[#DCE5F0] shadow-md p-5 text-[10px] space-y-4 font-sans select-text">
+        <div className="resume-paper-canvas w-full bg-white rounded-lg border border-[#DCE5F0] shadow-md p-5 text-[10px] space-y-4 font-sans select-text">
           {/* Document Header */}
           <div
             className={`border-b border-[#E2E8F0] pb-3 text-center transition-all ${

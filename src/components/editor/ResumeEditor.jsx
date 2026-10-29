@@ -6,6 +6,7 @@ import Step4Education from './steps/Step4Education'
 import Step5Experience from './steps/Step5Experience'
 import Step6Projects from './steps/Step6Projects'
 import ResumePreviewPane from './ResumePreviewPane'
+import ThemeToggle from '../common/ThemeToggle'
 import { resumeApi, authApi, getCurrentUser, setCurrentUser } from '../../services/api'
 
 const stepsConfig = [
@@ -621,7 +622,8 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
         </div>
 
         {/* Right: Preview Resume & Exit Setup Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <ThemeToggle />
           <button
             onClick={() => alert('Opening full screen high-resolution preview...')}
             className="h-[44px] px-4 rounded-lg border border-[#DCE5F0] bg-white text-[#102544] font-body-semibold text-body-semibold flex items-center gap-2 hover:bg-[#F8FAFC] hover:border-[#CBD5E1] transition-colors shadow-sm cursor-pointer"

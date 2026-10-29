@@ -1,3 +1,5 @@
+import ThemeToggle from './common/ThemeToggle'
+
 export default function Header({ onNavigateLogin, onNavigateSignup, onNavigateHome }) {
   return (
     <header className="bg-surface-container-lowest sticky top-0 z-50 border-b border-outline-variant shadow-sm transition-all duration-150">
@@ -49,6 +51,7 @@ export default function Header({ onNavigateLogin, onNavigateSignup, onNavigateHo
 
         {/* Trailing Action Buttons */}
         <div className="flex items-center gap-space-sm">
+          <ThemeToggle />
           <button
             onClick={onNavigateLogin}
             className="h-[44px] px-space-md text-[#102544] font-body-semibold text-body-semibold hover:text-primary-container transition-colors duration-150 active:scale-[0.98] cursor-pointer"

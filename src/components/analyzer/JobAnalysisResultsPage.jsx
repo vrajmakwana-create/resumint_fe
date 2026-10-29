@@ -215,41 +215,402 @@ export default function JobAnalysisResultsPage({ onNavigate, onLogout }) {
             <>
               {/* Breadcrumbs & Title */}
               <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <button
-                onClick={() => onNavigate('analyze-job')}
-                className="inline-flex items-center gap-1.5 text-body-medium font-body-medium text-[#4c5f81] hover:text-[#2563EB] transition-colors cursor-pointer"
-                type="button"
-              >
-                <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-                <span>Back to Job Analyzer</span>
-              </button>
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-badge-label font-badge-label bg-[#EFF6FF] text-[#1D4ED8] border border-[#BFDBFE]">
-                ATS Match Audit &amp; Interview Guide
-              </span>
-            </div>
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => onNavigate('analyze-job')}
+                    className="inline-flex items-center gap-1.5 text-body-medium font-body-medium text-[#4c5f81] hover:text-[#2563EB] transition-colors cursor-pointer"
+                    type="button"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                    <span>Back to Job Analyzer</span>
+                  </button>
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-badge-label font-badge-label bg-[#EFF6FF] text-[#1D4ED8] border border-[#BFDBFE]">
+                    ATS Match Audit &amp; Interview Guide
+                  </span>
+                </div>
 
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pt-1">
-              <div>
-                <h1 className="font-headline-page text-headline-page text-[#14243B] tracking-tight">
-                  {data.job_title || 'Senior Cloud Infrastructure & Backend Architect'}{' '}
-                  <span className="text-[#2563EB]">@ {data.company_name || 'Google'}</span>
-                </h1>
-                <p className="text-sm text-[#64748B] mt-1 max-w-3xl leading-relaxed">
-                  {data.match_rationale}
-                </p>
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pt-1">
+                  <div>
+                    <h1 className="font-headline-page text-headline-page text-[#14243B] tracking-tight">
+                      {data.job_title || 'Senior Cloud Infrastructure & Backend Architect'}{' '}
+                      <span className="text-[#2563EB]">@ {data.company_name || 'Google'}</span>
+                    </h1>
+                    <p className="text-sm text-[#64748B] mt-1 max-w-3xl leading-relaxed">
+                      {data.match_rationale}
+                    </p>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-3 shrink-0">
+                    <button
+                      onClick={() => onNavigate('analyze-job')}
+                      className="h-[44px] px-4 bg-white border border-[#DCE5F0] hover:bg-[#F8FAFC] text-[#14243B] font-body-semibold rounded-lg flex items-center gap-2 transition-all shadow-sm cursor-pointer"
+                      type="button"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">refresh</span>
+                      <span>Analyze Another Job</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (tailored.tailored_summary) {
+                          localStorage.setItem(
+                            'resumint_extracted_resume',
+                            JSON.stringify({
+                              summary: tailored.tailored_summary,
+                              skills: tailored.tailored_skills || [],
+                              tools: (tailored.tailored_skills || []).slice(0, 5),
+                              technical: (tailored.tailored_skills || []).slice(5),
+                            })
+                          )
+                        }
+                        onNavigate('editor')
+                      }}
+                      className="h-[44px] px-5 bg-[#2563EB] hover:bg-[#1D4ED8] active:bg-[#1E40AF] text-white font-body-semibold rounded-lg flex items-center gap-2 transition-all shadow-sm cursor-pointer"
+                      type="button"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">edit</span>
+                      <span>Apply Tailored Resume to Editor</span>
+                    </button>
+                  </div>
+                </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-3 shrink-0">
-                <button
-                  onClick={() => onNavigate('analyze-job')}
-                  className="h-[44px] px-4 bg-white border border-[#DCE5F0] hover:bg-[#F8FAFC] text-[#14243B] font-body-semibold rounded-lg flex items-center gap-2 transition-all shadow-sm cursor-pointer"
-                  type="button"
-                >
-                  <span className="material-symbols-outlined text-[18px]">refresh</span>
-                  <span>Analyze Another Job</span>
-                </button>
+              {/* MAIN COMPATIBILITY SCORE CARD */}
+              <section className="bg-white border border-[#DCE5F0] rounded-xl p-6 shadow-sm">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                  {/* Left Column: Radial Score Indicator */}
+                  <div className="lg:col-span-5 flex flex-col sm:flex-row items-center gap-6 lg:border-r lg:border-[#DCE5F0] lg:pr-8">
+                    <div className="relative w-36 h-36 shrink-0 flex items-center justify-center">
+                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
+                        <circle cx="60" cy="60" fill="transparent" r="50" stroke="#E2E8F0" strokeWidth="10" />
+                        <circle
+                          cx="60"
+                          cy="60"
+                          fill="transparent"
+                          r="50"
+                          stroke={matchScore >= 80 ? '#16A34A' : matchScore >= 60 ? '#2563EB' : '#DC2626'}
+                          strokeDasharray="314.16"
+                          strokeDashoffset={314.16 - (314.16 * matchScore) / 100}
+                          strokeLinecap="round"
+                          strokeWidth="10"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                        <span className="font-headline-page text-[20px] leading-tight font-extrabold text-[#14243B] tracking-tight">
+                          {matchScore}%
+                        </span>
+                        <span
+                          className={`text-[11px] font-semibold uppercase tracking-wider ${matchScore >= 80 ? 'text-[#16A34A]' : matchScore >= 60 ? 'text-[#2563EB]' : 'text-[#DC2626]'
+                            }`}
+                        >
+                          {matchScore >= 80 ? 'Strong' : matchScore >= 60 ? 'Moderate' : 'Gap'}
+                        </span>
+                        <span
+                          className={`text-[11px] font-semibold uppercase tracking-wider ${matchScore >= 80 ? 'text-[#16A34A]' : matchScore >= 60 ? 'text-[#2563EB]' : 'text-[#DC2626]'
+                            }`}
+                        >
+                          {matchScore >= 80 ? 'Match' : matchScore >= 60 ? 'Match' : 'Alert'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5 text-center sm:text-left">
+                      <span
+                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${matchScore >= 80
+                          ? 'bg-[#DCFCE7] text-[#15803D]'
+                          : 'bg-[#EFF6FF] text-[#2563EB]'
+                          }`}
+                      >
+                        <span className="material-symbols-outlined text-[14px]">
+                          {matchScore >= 80 ? 'check_circle' : 'insights'}
+                        </span>
+                        {matchScore >= 80 ? 'High Compatibility' : 'Optimization Potential'}
+                      </span>
+                      <h3 className="font-headline-card text-lg font-bold text-[#14243B]">
+                        {data.job_title}
+                      </h3>
+                      <p className="text-xs text-[#64748B] leading-relaxed">
+                        {skillsAn.matching_skills_count || 5} of {skillsAn.total_jd_skills_count || 10} required skills matched.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Right Column: 4 Pillar Metrics */}
+                  <div className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div className="p-3.5 bg-[#F8FAFC] rounded-xl border border-[#DCE5F0] text-center">
+                      <div className="text-xl font-bold text-[#14243B]">
+                        {skillsAn.matching_skills_count || 5} / {skillsAn.total_jd_skills_count || 10}
+                      </div>
+                      <div className="text-[11px] font-semibold text-[#64748B] mt-0.5">Matching Skills</div>
+                      <div className="text-[10px] text-[#16A34A] font-medium mt-1">Core Stack Safe</div>
+                    </div>
+
+                    <div className="p-3.5 bg-[#F8FAFC] rounded-xl border border-[#DCE5F0] text-center">
+                      <div className="text-xl font-bold text-[#DC2626]">
+                        {expAn.candidate_experience_years || 2}y / {expAn.jd_experience_years || 7}y
+                      </div>
+                      <div className="text-[11px] font-semibold text-[#64748B] mt-0.5">Experience Gap</div>
+                      <div className="text-[10px] text-[#DC2626] font-medium mt-1">Seniority Gap</div>
+                    </div>
+
+                    <div className="p-3.5 bg-[#F8FAFC] rounded-xl border border-[#DCE5F0] text-center">
+                      <div className="text-xl font-bold text-[#2563EB]">
+                        {interviewPrep.length} Topics
+                      </div>
+                      <div className="text-[11px] font-semibold text-[#64748B] mt-0.5">Interview Prep</div>
+                      <div className="text-[10px] text-[#2563EB] font-medium mt-1">Ready to Study</div>
+                    </div>
+
+                    <div className="p-3.5 bg-[#F8FAFC] rounded-xl border border-[#DCE5F0] text-center">
+                      <div className="text-xl font-bold text-[#16A34A]">100%</div>
+                      <div className="text-[11px] font-semibold text-[#64748B] mt-0.5">Format Pass</div>
+                      <div className="text-[10px] text-[#16A34A] font-medium mt-1">ATS Compliant</div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* SENIORITY GAP VERDICT BANNER */}
+              {expAn.experience_gap_verdict && (
+                <div className="p-5 rounded-xl bg-[#FFFBEB] border border-[#FCD34D] text-[#92400E] flex items-start gap-3 shadow-sm">
+                  <span className="material-symbols-outlined text-[24px] text-[#D97706] shrink-0 mt-0.5">
+                    warning
+                  </span>
+                  <div className="space-y-1">
+                    <h4 className="font-bold text-sm text-[#78350F]">Seniority Analysis Verdict</h4>
+                    <p className="text-xs text-[#92400E] leading-relaxed">{expAn.experience_gap_verdict}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* TABS & DETAILED BREAKDOWN */}
+              <section className="bg-white border border-[#DCE5F0] rounded-xl p-6 shadow-sm space-y-6">
+                <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#DCE5F0] pb-4">
+                  <div className="flex items-center gap-2">
+                    <h2 className="font-headline-card text-lg font-bold text-[#14243B]">
+                      Detailed Analysis &amp; Action Plan
+                    </h2>
+                  </div>
+
+                  {/* Tab Toggles */}
+                  <div className="flex items-center bg-[#F1F5F9] p-1 rounded-lg border border-[#DCE5F0]">
+                    <button
+                      onClick={() => setActiveTab('matched')}
+                      className={`px-3 py-1.5 rounded text-xs font-semibold cursor-pointer transition-all ${activeTab === 'matched' ? 'bg-white text-[#16A34A] shadow-xs' : 'text-[#64748B]'
+                        }`}
+                      type="button"
+                    >
+                      Matching Skills ({skillsAn.matching_skills?.length || 0})
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('missing')}
+                      className={`px-3 py-1.5 rounded text-xs font-semibold cursor-pointer transition-all ${activeTab === 'missing' ? 'bg-white text-[#DC2626] shadow-xs' : 'text-[#64748B]'
+                        }`}
+                      type="button"
+                    >
+                      Missing Skills ({skillsAn.missing_skills?.length || 0})
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('interview')}
+                      className={`px-3 py-1.5 rounded text-xs font-semibold cursor-pointer transition-all ${activeTab === 'interview' ? 'bg-white text-[#2563EB] shadow-xs' : 'text-[#64748B]'
+                        }`}
+                      type="button"
+                    >
+                      Interview Prep ({interviewPrep.length})
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('tailored')}
+                      className={`px-3 py-1.5 rounded text-xs font-semibold cursor-pointer transition-all ${activeTab === 'tailored' ? 'bg-white text-[#7C3AED] shadow-xs' : 'text-[#64748B]'
+                        }`}
+                      type="button"
+                    >
+                      AI Tailored Summary
+                    </button>
+                  </div>
+                </div>
+
+                {/* TAB 1: Matched Skills */}
+                {activeTab === 'matched' && (
+                  <div className="space-y-4">
+                    <p className="text-xs text-[#64748B]">
+                      Your resume explicitly matches these core competencies requested in the job description:
+                    </p>
+                    <div className="flex flex-wrap gap-2.5">
+                      {(skillsAn.matching_skills || []).map((skill, idx) => (
+                        <div
+                          key={idx}
+                          className="inline-flex items-center gap-2 bg-[#F0FDF4] border border-[#BBF7D0] px-3.5 py-2 rounded-lg text-xs"
+                        >
+                          <span className="material-symbols-outlined text-[16px] text-[#16A34A]">check_circle</span>
+                          <span className="font-bold text-[#14243B]">{skill}</span>
+                          <span className="text-[10px] font-semibold text-[#15803D] bg-white px-2 py-0.5 rounded border border-[#BBF7D0]">
+                            Matched
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 2: Missing Skills */}
+                {activeTab === 'missing' && (
+                  <div className="space-y-4">
+                    <div className="p-4 bg-[#FEF2F2] border border-[#FECACA] rounded-xl flex items-start gap-3">
+                      <span className="material-symbols-outlined text-[20px] text-[#DC2626] shrink-0 mt-0.5">
+                        warning
+                      </span>
+                      <div className="text-xs space-y-1">
+                        <p className="font-bold text-[#991B1B]">
+                          Adding these missing competencies can significantly increase your ATS score
+                        </p>
+                        <p className="text-[#B91C1C]">
+                          These skills are highlighted as crucial criteria for {data.job_title} @ {data.company_name}.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {(skillsAn.missing_skills || []).map((skill, idx) => (
+                        <div
+                          key={idx}
+                          className="p-4 bg-[#F8FAFC] border border-[#DCE5F0] rounded-xl flex items-center justify-between gap-3"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[#DC2626] text-[18px]">add_circle</span>
+                            <span className="font-bold text-sm text-[#14243B]">{skill}</span>
+                          </div>
+                          <span className="px-2.5 py-1 bg-[#FEF2F2] text-[#DC2626] text-[11px] font-semibold rounded-full border border-[#FECACA]">
+                            Missing Keyword
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 3: Interview Preparation */}
+                {activeTab === 'interview' && (
+                  <div className="space-y-6">
+                    <p className="text-xs text-[#64748B]">
+                      Key topics and expected technical interview questions tailored for {data.job_title}:
+                    </p>
+
+                    <div className="space-y-5">
+                      {interviewPrep.map((prep, idx) => (
+                        <div
+                          key={idx}
+                          className="p-5 bg-[#F8FAFC] border border-[#DCE5F0] rounded-xl space-y-4"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="material-symbols-outlined text-[#2563EB] text-[20px]">
+                                psychology
+                              </span>
+                              <h3 className="font-bold text-base text-[#14243B]">{prep.skill}</h3>
+                            </div>
+                            <span
+                              className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${prep.priority === 'High'
+                                ? 'bg-red-100 text-red-700'
+                                : 'bg-amber-100 text-amber-700'
+                                }`}
+                            >
+                              {prep.priority} Priority
+                            </span>
+                          </div>
+
+                          <p className="text-xs text-[#475569] leading-relaxed">
+                            <strong className="text-[#14243B]">Why it matters:</strong> {prep.why_important}
+                          </p>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                            {/* Key Concepts */}
+                            <div className="p-3.5 bg-white rounded-lg border border-[#DCE5F0] space-y-2">
+                              <span className="text-xs font-bold text-[#2563EB] uppercase tracking-wider block">
+                                Key Concepts to Revise
+                              </span>
+                              <ul className="list-disc list-inside text-xs text-[#475569] space-y-1">
+                                {(prep.key_concepts_to_revise || []).map((concept, cIdx) => (
+                                  <li key={cIdx}>{concept}</li>
+                                ))}
+                              </ul>
+                            </div>
+
+                            {/* Likely Questions */}
+                            <div className="p-3.5 bg-white rounded-lg border border-[#DCE5F0] space-y-2">
+                              <span className="text-xs font-bold text-[#16A34A] uppercase tracking-wider block">
+                                Likely Interview Questions
+                              </span>
+                              <ul className="list-disc list-inside text-xs text-[#475569] space-y-1">
+                                {(prep.likely_interview_questions || []).map((q, qIdx) => (
+                                  <li key={qIdx}>{q}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 4: AI Tailored Resume */}
+                {activeTab === 'tailored' && (
+                  <div className="space-y-5">
+                    <div className="p-4 bg-[#F3E8FF] border border-[#DDD6FE] rounded-xl text-[#6B21A8] flex items-start gap-3">
+                      <span className="material-symbols-outlined text-[20px] text-[#7C3AED] shrink-0 mt-0.5">
+                        auto_awesome
+                      </span>
+                      <div className="text-xs space-y-1">
+                        <p className="font-bold text-[#581C87]">AI-Generated Tailored Content</p>
+                        <p className="text-[#6B21A8]">
+                          Use this tailored summary and optimized skill list to increase your response rate for this position.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Tailored Summary Card */}
+                    {tailored.tailored_summary && (
+                      <div className="p-5 bg-[#F8FAFC] border border-[#DCE5F0] rounded-xl space-y-2">
+                        <h3 className="font-bold text-sm text-[#14243B]">Optimized Professional Summary</h3>
+                        <p className="text-xs text-[#475569] leading-relaxed bg-white p-4 rounded-lg border border-[#DCE5F0]">
+                          {tailored.tailored_summary}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Tailored Skills List */}
+                    {tailored.tailored_skills && (
+                      <div className="p-5 bg-[#F8FAFC] border border-[#DCE5F0] rounded-xl space-y-3">
+                        <h3 className="font-bold text-sm text-[#14243B]">Tailored Skills &amp; Keywords</h3>
+                        <div className="flex flex-wrap gap-2">
+                          {tailored.tailored_skills.map((s, idx) => (
+                            <span
+                              key={idx}
+                              className="bg-white border border-[#2563EB]/30 text-[#2563EB] px-3 py-1.5 rounded-lg text-xs font-semibold shadow-xs"
+                            >
+                              {s}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </section>
+
+              {/* TAILORED GENERATOR BANNER */}
+              <div className="p-6 bg-gradient-to-r from-[#102544] to-[#1E3A5F] rounded-2xl text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-md">
+                <div className="space-y-1 text-center md:text-left">
+                  <span className="text-[11px] font-bold tracking-widest text-[#93C5FD] uppercase">
+                    1-Click Tailored Optimization
+                  </span>
+                  <h3 className="font-headline-card text-xl font-bold">
+                    Apply Tailored Summary &amp; Keywords to Your Resume
+                  </h3>
+                  <p className="text-xs text-slate-300 max-w-xl">
+                    Automatically pre-fill your editor with the tailored professional summary and keywords generated for {data.job_title}.
+                  </p>
+                </div>
                 <button
                   onClick={() => {
                     if (tailored.tailored_summary) {
@@ -265,376 +626,14 @@ export default function JobAnalysisResultsPage({ onNavigate, onLogout }) {
                     }
                     onNavigate('editor')
                   }}
-                  className="h-[44px] px-5 bg-[#2563EB] hover:bg-[#1D4ED8] active:bg-[#1E40AF] text-white font-body-semibold rounded-lg flex items-center gap-2 transition-all shadow-sm cursor-pointer"
+                  className="h-11 px-6 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-body-semibold text-sm flex items-center gap-2 shadow-lg transition-all shrink-0 cursor-pointer"
                   type="button"
                 >
-                  <span className="material-symbols-outlined text-[18px]">edit</span>
-                  <span>Apply Tailored Resume to Editor</span>
+                  <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
+                  <span>Open in Resume Editor</span>
                 </button>
               </div>
-            </div>
-          </div>
-
-          {/* MAIN COMPATIBILITY SCORE CARD */}
-          <section className="bg-white border border-[#DCE5F0] rounded-xl p-6 shadow-sm">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-              {/* Left Column: Radial Score Indicator */}
-              <div className="lg:col-span-5 flex flex-col sm:flex-row items-center gap-6 lg:border-r lg:border-[#DCE5F0] lg:pr-8">
-                <div className="relative w-36 h-36 shrink-0 flex items-center justify-center">
-                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
-                    <circle cx="60" cy="60" fill="transparent" r="50" stroke="#E2E8F0" strokeWidth="10" />
-                    <circle
-                      cx="60"
-                      cy="60"
-                      fill="transparent"
-                      r="50"
-                      stroke={matchScore >= 80 ? '#16A34A' : matchScore >= 60 ? '#2563EB' : '#DC2626'}
-                      strokeDasharray="314.16"
-                      strokeDashoffset={314.16 - (314.16 * matchScore) / 100}
-                      strokeLinecap="round"
-                      strokeWidth="10"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span className="font-headline-page text-[34px] leading-tight font-extrabold text-[#14243B] tracking-tight">
-                      {matchScore}%
-                    </span>
-                    <span
-                      className={`text-[11px] font-semibold uppercase tracking-wider ${
-                        matchScore >= 80 ? 'text-[#16A34A]' : matchScore >= 60 ? 'text-[#2563EB]' : 'text-[#DC2626]'
-                      }`}
-                    >
-                      {matchScore >= 80 ? 'Strong Match' : matchScore >= 60 ? 'Moderate Match' : 'Gap Alert'}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5 text-center sm:text-left">
-                  <span
-                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                      matchScore >= 80
-                        ? 'bg-[#DCFCE7] text-[#15803D]'
-                        : 'bg-[#EFF6FF] text-[#2563EB]'
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-[14px]">
-                      {matchScore >= 80 ? 'check_circle' : 'insights'}
-                    </span>
-                    {matchScore >= 80 ? 'High Compatibility' : 'Optimization Potential'}
-                  </span>
-                  <h3 className="font-headline-card text-lg font-bold text-[#14243B]">
-                    {data.job_title}
-                  </h3>
-                  <p className="text-xs text-[#64748B] leading-relaxed">
-                    {skillsAn.matching_skills_count || 5} of {skillsAn.total_jd_skills_count || 10} required skills matched.
-                  </p>
-                </div>
-              </div>
-
-              {/* Right Column: 4 Pillar Metrics */}
-              <div className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div className="p-3.5 bg-[#F8FAFC] rounded-xl border border-[#DCE5F0] text-center">
-                  <div className="text-xl font-bold text-[#14243B]">
-                    {skillsAn.matching_skills_count || 5} / {skillsAn.total_jd_skills_count || 10}
-                  </div>
-                  <div className="text-[11px] font-semibold text-[#64748B] mt-0.5">Matching Skills</div>
-                  <div className="text-[10px] text-[#16A34A] font-medium mt-1">Core Stack Safe</div>
-                </div>
-
-                <div className="p-3.5 bg-[#F8FAFC] rounded-xl border border-[#DCE5F0] text-center">
-                  <div className="text-xl font-bold text-[#DC2626]">
-                    {expAn.candidate_experience_years || 2}y / {expAn.jd_experience_years || 7}y
-                  </div>
-                  <div className="text-[11px] font-semibold text-[#64748B] mt-0.5">Experience Gap</div>
-                  <div className="text-[10px] text-[#DC2626] font-medium mt-1">Seniority Gap</div>
-                </div>
-
-                <div className="p-3.5 bg-[#F8FAFC] rounded-xl border border-[#DCE5F0] text-center">
-                  <div className="text-xl font-bold text-[#2563EB]">
-                    {interviewPrep.length} Topics
-                  </div>
-                  <div className="text-[11px] font-semibold text-[#64748B] mt-0.5">Interview Prep</div>
-                  <div className="text-[10px] text-[#2563EB] font-medium mt-1">Ready to Study</div>
-                </div>
-
-                <div className="p-3.5 bg-[#F8FAFC] rounded-xl border border-[#DCE5F0] text-center">
-                  <div className="text-xl font-bold text-[#16A34A]">100%</div>
-                  <div className="text-[11px] font-semibold text-[#64748B] mt-0.5">Format Pass</div>
-                  <div className="text-[10px] text-[#16A34A] font-medium mt-1">ATS Compliant</div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* SENIORITY GAP VERDICT BANNER */}
-          {expAn.experience_gap_verdict && (
-            <div className="p-5 rounded-xl bg-[#FFFBEB] border border-[#FCD34D] text-[#92400E] flex items-start gap-3 shadow-sm">
-              <span className="material-symbols-outlined text-[24px] text-[#D97706] shrink-0 mt-0.5">
-                warning
-              </span>
-              <div className="space-y-1">
-                <h4 className="font-bold text-sm text-[#78350F]">Seniority Analysis Verdict</h4>
-                <p className="text-xs text-[#92400E] leading-relaxed">{expAn.experience_gap_verdict}</p>
-              </div>
-            </div>
-          )}
-
-          {/* TABS & DETAILED BREAKDOWN */}
-          <section className="bg-white border border-[#DCE5F0] rounded-xl p-6 shadow-sm space-y-6">
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#DCE5F0] pb-4">
-              <div className="flex items-center gap-2">
-                <h2 className="font-headline-card text-lg font-bold text-[#14243B]">
-                  Detailed Analysis &amp; Action Plan
-                </h2>
-              </div>
-
-              {/* Tab Toggles */}
-              <div className="flex items-center bg-[#F1F5F9] p-1 rounded-lg border border-[#DCE5F0]">
-                <button
-                  onClick={() => setActiveTab('matched')}
-                  className={`px-3 py-1.5 rounded text-xs font-semibold cursor-pointer transition-all ${
-                    activeTab === 'matched' ? 'bg-white text-[#16A34A] shadow-xs' : 'text-[#64748B]'
-                  }`}
-                  type="button"
-                >
-                  Matching Skills ({skillsAn.matching_skills?.length || 0})
-                </button>
-                <button
-                  onClick={() => setActiveTab('missing')}
-                  className={`px-3 py-1.5 rounded text-xs font-semibold cursor-pointer transition-all ${
-                    activeTab === 'missing' ? 'bg-white text-[#DC2626] shadow-xs' : 'text-[#64748B]'
-                  }`}
-                  type="button"
-                >
-                  Missing Skills ({skillsAn.missing_skills?.length || 0})
-                </button>
-                <button
-                  onClick={() => setActiveTab('interview')}
-                  className={`px-3 py-1.5 rounded text-xs font-semibold cursor-pointer transition-all ${
-                    activeTab === 'interview' ? 'bg-white text-[#2563EB] shadow-xs' : 'text-[#64748B]'
-                  }`}
-                  type="button"
-                >
-                  Interview Prep ({interviewPrep.length})
-                </button>
-                <button
-                  onClick={() => setActiveTab('tailored')}
-                  className={`px-3 py-1.5 rounded text-xs font-semibold cursor-pointer transition-all ${
-                    activeTab === 'tailored' ? 'bg-white text-[#7C3AED] shadow-xs' : 'text-[#64748B]'
-                  }`}
-                  type="button"
-                >
-                  AI Tailored Summary
-                </button>
-              </div>
-            </div>
-
-            {/* TAB 1: Matched Skills */}
-            {activeTab === 'matched' && (
-              <div className="space-y-4">
-                <p className="text-xs text-[#64748B]">
-                  Your resume explicitly matches these core competencies requested in the job description:
-                </p>
-                <div className="flex flex-wrap gap-2.5">
-                  {(skillsAn.matching_skills || []).map((skill, idx) => (
-                    <div
-                      key={idx}
-                      className="inline-flex items-center gap-2 bg-[#F0FDF4] border border-[#BBF7D0] px-3.5 py-2 rounded-lg text-xs"
-                    >
-                      <span className="material-symbols-outlined text-[16px] text-[#16A34A]">check_circle</span>
-                      <span className="font-bold text-[#14243B]">{skill}</span>
-                      <span className="text-[10px] font-semibold text-[#15803D] bg-white px-2 py-0.5 rounded border border-[#BBF7D0]">
-                        Matched
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* TAB 2: Missing Skills */}
-            {activeTab === 'missing' && (
-              <div className="space-y-4">
-                <div className="p-4 bg-[#FEF2F2] border border-[#FECACA] rounded-xl flex items-start gap-3">
-                  <span className="material-symbols-outlined text-[20px] text-[#DC2626] shrink-0 mt-0.5">
-                    warning
-                  </span>
-                  <div className="text-xs space-y-1">
-                    <p className="font-bold text-[#991B1B]">
-                      Adding these missing competencies can significantly increase your ATS score
-                    </p>
-                    <p className="text-[#B91C1C]">
-                      These skills are highlighted as crucial criteria for {data.job_title} @ {data.company_name}.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {(skillsAn.missing_skills || []).map((skill, idx) => (
-                    <div
-                      key={idx}
-                      className="p-4 bg-[#F8FAFC] border border-[#DCE5F0] rounded-xl flex items-center justify-between gap-3"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[#DC2626] text-[18px]">add_circle</span>
-                        <span className="font-bold text-sm text-[#14243B]">{skill}</span>
-                      </div>
-                      <span className="px-2.5 py-1 bg-[#FEF2F2] text-[#DC2626] text-[11px] font-semibold rounded-full border border-[#FECACA]">
-                        Missing Keyword
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* TAB 3: Interview Preparation */}
-            {activeTab === 'interview' && (
-              <div className="space-y-6">
-                <p className="text-xs text-[#64748B]">
-                  Key topics and expected technical interview questions tailored for {data.job_title}:
-                </p>
-
-                <div className="space-y-5">
-                  {interviewPrep.map((prep, idx) => (
-                    <div
-                      key={idx}
-                      className="p-5 bg-[#F8FAFC] border border-[#DCE5F0] rounded-xl space-y-4"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="material-symbols-outlined text-[#2563EB] text-[20px]">
-                            psychology
-                          </span>
-                          <h3 className="font-bold text-base text-[#14243B]">{prep.skill}</h3>
-                        </div>
-                        <span
-                          className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                            prep.priority === 'High'
-                              ? 'bg-red-100 text-red-700'
-                              : 'bg-amber-100 text-amber-700'
-                          }`}
-                        >
-                          {prep.priority} Priority
-                        </span>
-                      </div>
-
-                      <p className="text-xs text-[#475569] leading-relaxed">
-                        <strong className="text-[#14243B]">Why it matters:</strong> {prep.why_important}
-                      </p>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-                        {/* Key Concepts */}
-                        <div className="p-3.5 bg-white rounded-lg border border-[#DCE5F0] space-y-2">
-                          <span className="text-xs font-bold text-[#2563EB] uppercase tracking-wider block">
-                            Key Concepts to Revise
-                          </span>
-                          <ul className="list-disc list-inside text-xs text-[#475569] space-y-1">
-                            {(prep.key_concepts_to_revise || []).map((concept, cIdx) => (
-                              <li key={cIdx}>{concept}</li>
-                            ))}
-                          </ul>
-                        </div>
-
-                        {/* Likely Questions */}
-                        <div className="p-3.5 bg-white rounded-lg border border-[#DCE5F0] space-y-2">
-                          <span className="text-xs font-bold text-[#16A34A] uppercase tracking-wider block">
-                            Likely Interview Questions
-                          </span>
-                          <ul className="list-disc list-inside text-xs text-[#475569] space-y-1">
-                            {(prep.likely_interview_questions || []).map((q, qIdx) => (
-                              <li key={qIdx}>{q}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* TAB 4: AI Tailored Resume */}
-            {activeTab === 'tailored' && (
-              <div className="space-y-5">
-                <div className="p-4 bg-[#F3E8FF] border border-[#DDD6FE] rounded-xl text-[#6B21A8] flex items-start gap-3">
-                  <span className="material-symbols-outlined text-[20px] text-[#7C3AED] shrink-0 mt-0.5">
-                    auto_awesome
-                  </span>
-                  <div className="text-xs space-y-1">
-                    <p className="font-bold text-[#581C87]">AI-Generated Tailored Content</p>
-                    <p className="text-[#6B21A8]">
-                      Use this tailored summary and optimized skill list to increase your response rate for this position.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Tailored Summary Card */}
-                {tailored.tailored_summary && (
-                  <div className="p-5 bg-[#F8FAFC] border border-[#DCE5F0] rounded-xl space-y-2">
-                    <h3 className="font-bold text-sm text-[#14243B]">Optimized Professional Summary</h3>
-                    <p className="text-xs text-[#475569] leading-relaxed bg-white p-4 rounded-lg border border-[#DCE5F0]">
-                      {tailored.tailored_summary}
-                    </p>
-                  </div>
-                )}
-
-                {/* Tailored Skills List */}
-                {tailored.tailored_skills && (
-                  <div className="p-5 bg-[#F8FAFC] border border-[#DCE5F0] rounded-xl space-y-3">
-                    <h3 className="font-bold text-sm text-[#14243B]">Tailored Skills &amp; Keywords</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {tailored.tailored_skills.map((s, idx) => (
-                        <span
-                          key={idx}
-                          className="bg-white border border-[#2563EB]/30 text-[#2563EB] px-3 py-1.5 rounded-lg text-xs font-semibold shadow-xs"
-                        >
-                          {s}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </section>
-
-          {/* TAILORED GENERATOR BANNER */}
-          <div className="p-6 bg-gradient-to-r from-[#102544] to-[#1E3A5F] rounded-2xl text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-md">
-            <div className="space-y-1 text-center md:text-left">
-              <span className="text-[11px] font-bold tracking-widest text-[#93C5FD] uppercase">
-                1-Click Tailored Optimization
-              </span>
-              <h3 className="font-headline-card text-xl font-bold">
-                Apply Tailored Summary &amp; Keywords to Your Resume
-              </h3>
-              <p className="text-xs text-slate-300 max-w-xl">
-                Automatically pre-fill your editor with the tailored professional summary and keywords generated for {data.job_title}.
-              </p>
-            </div>
-            <button
-              onClick={() => {
-                if (tailored.tailored_summary) {
-                  localStorage.setItem(
-                    'resumint_extracted_resume',
-                    JSON.stringify({
-                      summary: tailored.tailored_summary,
-                      skills: tailored.tailored_skills || [],
-                      tools: (tailored.tailored_skills || []).slice(0, 5),
-                      technical: (tailored.tailored_skills || []).slice(5),
-                    })
-                  )
-                }
-                onNavigate('editor')
-              }}
-              className="h-11 px-6 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-body-semibold text-sm flex items-center gap-2 shadow-lg transition-all shrink-0 cursor-pointer"
-              type="button"
-            >
-              <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
-              <span>Open in Resume Editor</span>
-            </button>
-          </div>
-          </>
+            </>
           )}
         </main>
       </div>

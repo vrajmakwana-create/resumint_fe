@@ -61,18 +61,56 @@ const stepsConfig = [
 ]
 
 export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
-  const [currentStep, setCurrentStep] = useState(initialStep || 1)
-  const [completedSteps, setCompletedSteps] = useState(() => {
-    const s = initialStep || 1
-    return Array.from({ length: Math.max(0, s - 1) }, (_, i) => i + 1)
+  const [stepCount, setStepCount] = useState(() => {
+    const user = getCurrentUser()
+    const sc = user?.step_count ?? localStorage.getItem('resumint_step_count')
+    return typeof sc === 'number' ? sc : Number(sc) || 0
   })
+
+  const allowedMaxStep = Math.min(6, (stepCount || 0) + 1)
+
+  const [currentStep, setCurrentStep] = useState(() => {
+    const user = getCurrentUser()
+    const sc = user?.step_count ?? localStorage.getItem('resumint_step_count')
+    const calculatedAllowed = Math.min(6, (Number(sc) || 0) + 1)
+    const initial = initialStep || 1
+    return Math.min(initial, calculatedAllowed)
+  })
+
+  const completedSteps = Array.from({ length: Math.min(6, stepCount || 0) }, (_, i) => i + 1)
+
+  // Sync /me on mount to get exact real-time backend step_count
+  useEffect(() => {
+    let isMounted = true
+
+    const syncUserStepCount = async () => {
+      try {
+        const meRes = await authApi.getMe()
+        const user = meRes?.data || meRes
+        if (user && typeof user.step_count !== 'undefined' && isMounted) {
+          const sc = typeof user.step_count === 'number' ? user.step_count : Number(user.step_count) || 0
+          setStepCount(sc)
+          const maxAllowed = Math.min(6, sc + 1)
+          setCurrentStep((prev) => (prev > maxAllowed ? maxAllowed : prev))
+        }
+      } catch (err) {
+        console.warn('Failed to sync user step_count from /me:', err)
+      }
+    }
+
+    syncUserStepCount()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   useEffect(() => {
     if (initialStep && initialStep >= 1 && initialStep <= 6) {
-      setCurrentStep(initialStep)
-      setCompletedSteps(Array.from({ length: Math.max(0, initialStep - 1) }, (_, i) => i + 1))
+      const maxAllowed = Math.min(6, (stepCount || 0) + 1)
+      setCurrentStep(Math.min(initialStep, maxAllowed))
     }
-  }, [initialStep])
+  }, [initialStep, stepCount])
 
   const [resumeTitle, setResumeTitle] = useState('Untitled Resume')
   const [isEditingTitle, setIsEditingTitle] = useState(false)
@@ -677,6 +715,22 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
     const saved = await handleSaveCurrentStep()
     if (!saved) return
 
+    // Advance stepCount to reflect completion of currentStep
+    const updatedStepCount = Math.max(stepCount, currentStep)
+    setStepCount(updatedStepCount)
+    localStorage.setItem('resumint_step_count', String(updatedStepCount))
+
+    try {
+      const meRes = await authApi.getMe()
+      const user = meRes?.data || meRes
+      if (user && typeof user.step_count !== 'undefined') {
+        const sc = typeof user.step_count === 'number' ? user.step_count : Number(user.step_count) || updatedStepCount
+        setStepCount(sc)
+      }
+    } catch (err) {
+      console.warn('Failed to refresh /me profile on next step:', err)
+    }
+
     if (currentStep < 6) {
       setCurrentStep((prev) => prev + 1)
       setErrors({})
@@ -707,6 +761,16 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
 
   const handleStepClick = (targetStep) => {
     if (targetStep === currentStep || isSaving) return
+
+    // Block any attempt to jump ahead beyond the user's unlocked progress
+    if (targetStep > allowedMaxStep) {
+      setApiFeedback({
+        type: 'error',
+        message: `Please complete Step ${allowedMaxStep} first before accessing Step ${targetStep}.`,
+      })
+      return
+    }
+
     setCurrentStep(targetStep)
     setErrors({})
     setApiFeedback(null)
@@ -714,7 +778,7 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
   }
 
   const stepMeta = stepsConfig[currentStep - 1]
-  const progressPercent = Math.round((currentStep / 6) * 100)
+  const progressPercent = Math.round((Math.min(6, stepCount || 0) / 6) * 100)
 
   return (
     <div className="h-screen bg-[#F5F8FC] text-[#14243B] font-body-default flex flex-col antialiased selection:bg-[#2563EB]/20 selection:text-[#102544] overflow-hidden">
@@ -820,17 +884,21 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
             <nav className="space-y-1">
               {stepsConfig.map((s) => {
                 const isActive = s.id === currentStep
-                const isCompleted = completedSteps.includes(s.id) && !isActive
+                const isCompleted = s.id <= (stepCount || 0) && !isActive
+                const isAccessible = s.id <= allowedMaxStep
 
                 return (
                   <button
                     key={s.id}
                     onClick={() => handleStepClick(s.id)}
                     type="button"
-                    disabled={isSaving}
+                    disabled={!isAccessible || isSaving}
+                    title={s.title}
                     className={`w-full text-left flex items-center justify-between px-3.5 py-2.5 rounded-lg border-l-[3px] transition-all font-body-semibold text-[14px] ${isActive
                       ? 'border-[#2563EB] bg-[#EFF6FF] text-[#2563EB]'
-                      : 'border-transparent text-[#64748B] hover:text-[#14243B] hover:bg-[#F8FAFC] cursor-pointer'
+                      : isAccessible
+                        ? 'border-transparent text-[#64748B] hover:text-[#14243B] hover:bg-[#F8FAFC] cursor-pointer'
+                        : 'border-transparent text-[#94A3B8] cursor-not-allowed select-none filter blur-[1.5px] opacity-40'
                       }`}
                   >
                     <div className="flex items-center gap-3 truncate">
@@ -1027,25 +1095,37 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
             <div className="flex-1 p-3 overflow-y-auto space-y-1">
               {stepsConfig.map((s) => {
                 const isActive = s.id === currentStep
-                const isCompleted = completedSteps.includes(s.id) && !isActive
+                const isCompleted = s.id <= (stepCount || 0) && !isActive
+                const isAccessible = s.id <= allowedMaxStep
 
                 return (
                   <button
                     key={s.id}
                     onClick={() => {
+                      if (!isAccessible) return
                       handleStepClick(s.id)
                       setIsMobileStepsOpen(false)
                     }}
                     type="button"
-                    disabled={isSaving}
+                    disabled={!isAccessible || isSaving}
+                    title={s.title}
                     className={`w-full text-left flex items-center justify-between px-3 py-2.5 rounded-lg border-l-[3px] transition-all font-body-semibold text-[13px] ${isActive
                       ? 'border-[#2563EB] bg-[#EFF6FF] text-[#2563EB]'
-                      : 'border-transparent text-[#64748B] hover:text-[#14243B] hover:bg-[#F8FAFC] cursor-pointer'
+                      : isAccessible
+                        ? 'border-transparent text-[#64748B] hover:text-[#14243B] hover:bg-[#F8FAFC] cursor-pointer'
+                        : 'border-transparent text-[#94A3B8] cursor-not-allowed select-none filter blur-[1.5px] opacity-40'
                       }`}
                   >
                     <div className="flex items-center gap-2.5 truncate">
-                      <span className={`material-symbols-outlined text-[18px] ${isActive ? 'text-[#2563EB]' : 'text-[#94A3B8]'}`}>
-                        {s.icon}
+                      <span
+                        className={`material-symbols-outlined text-[18px] ${isActive
+                          ? 'text-[#2563EB]'
+                          : isCompleted
+                            ? 'text-[#16A34A]'
+                            : 'text-[#64748B]'
+                          }`}
+                      >
+                        {isCompleted ? 'check_circle' : s.icon}
                       </span>
                       <span className="truncate">{s.title}</span>
                     </div>

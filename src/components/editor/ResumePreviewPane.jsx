@@ -8,6 +8,7 @@ export default function ResumePreviewPane({ resumeData, currentStep }) {
     portfolio = 'portfolio.alexmorgan.design',
     summary = 'High-impact design leader with 10+ years architecting enterprise systems, multi-device experiences, and design systems for global SaaS platforms. Expert in 0-to-1 product strategy, generative UX workflows, and data-driven engagement with proven track record scaling design organizations.',
     tools = ['Figma', 'Design Systems', 'Enterprise SaaS', 'Prototyping', 'Generative UX', 'Team Mentorship'],
+    skills = [],
     experience = [
       {
         title: 'Principal Designer',
@@ -176,7 +177,7 @@ export default function ResumePreviewPane({ resumeData, currentStep }) {
               )}
             </div>
             <div className="flex flex-wrap gap-1 pt-0.5">
-              {tools.slice(0, 7).map((skill, sIdx) => (
+              {(skills.length > 0 ? skills : tools).slice(0, 10).map((skill, sIdx) => (
                 <span
                   key={sIdx}
                   className="bg-[#F1F5F9] text-[#14243B] px-1.5 py-0.5 rounded text-[8px] font-medium"

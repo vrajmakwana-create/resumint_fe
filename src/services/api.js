@@ -614,6 +614,17 @@ export const resumeApi = {
       body: payload,
     }),
 
+  /**
+   * Improve Professional Summary with AI
+   * cURL: POST /resume/improve-summary
+   * @param {{ tone?: string, summary: string }} payload
+   */
+  improveSummary: (payload) =>
+    apiClient('/resume/improve-summary', {
+      method: 'POST',
+      body: payload,
+    }),
+
   saveSkills: (payload) =>
     apiClient('/resume/save-skills', {
       method: 'POST',

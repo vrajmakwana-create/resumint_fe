@@ -5,15 +5,12 @@ import { resumeApi } from '../../services/api'
 
 export default function AnalyzeJobPage({ onNavigate, onLogout, onAnalysisDone }) {
   const [inputTab, setInputTab] = useState('paste') // 'paste' | 'upload'
-  const [jobTitle, setJobTitle] = useState('Senior Cloud Infrastructure & Backend Architect')
-  const [companyName, setCompanyName] = useState('Google')
+  const [jobTitle, setJobTitle] = useState('')
+  const [companyName, setCompanyName] = useState('')
   const [selectedResume, setSelectedResume] = useState('primary')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [errorMessage, setErrorMessage] = useState(null)
-
-  const [jobDesc, setJobDesc] = useState(
-    'We are seeking a Senior Backend Architect with 7+ years of experience in Python, FastAPI, PostgreSQL, Kubernetes, AWS, and Docker. The ideal candidate will architect resilient cloud-native microservices, optimize data pipelines, and lead high-availability deployments.'
-  )
+  const [jobDesc, setJobDesc] = useState('')
 
   const handleRunAnalysis = async () => {
     if (!jobDesc.trim()) {
@@ -26,8 +23,8 @@ export default function AnalyzeJobPage({ onNavigate, onLogout, onAnalysisDone })
 
     try {
       const payload = {
-        job_title: jobTitle.trim() || 'Senior Cloud Infrastructure & Backend Architect',
-        company_name: companyName.trim() || 'Google',
+        job_title: jobTitle.trim() || 'Untitled Job',
+        company_name: companyName.trim() || 'Company',
         job_description: jobDesc.trim(),
       }
 
@@ -132,7 +129,7 @@ export default function AnalyzeJobPage({ onNavigate, onLogout, onAnalysisDone })
                   <div className="relative">
                     <input
                       className="w-full h-11 px-3.5 bg-white border border-[#DCE5F0] rounded-lg text-sm text-[#14243B] placeholder-[#94A3B8] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15 outline-none transition-all font-body-default"
-                      placeholder="e.g. Senior Cloud Infrastructure & Backend Architect"
+                      placeholder="e.g. Senior Software Engineer"
                       type="text"
                       value={jobTitle}
                       onChange={(e) => setJobTitle(e.target.value)}
@@ -176,10 +173,10 @@ export default function AnalyzeJobPage({ onNavigate, onLogout, onAnalysisDone })
                   className="w-full h-11 px-3.5 bg-white border border-[#DCE5F0] rounded-lg text-sm text-[#14243B] font-body-medium focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15 outline-none transition-all cursor-pointer"
                 >
                   <option value="primary">
-                    Primary Resume — Python Backend Developer (98% Base ATS Score)
+                    Primary Resume
                   </option>
                   <option value="senior">
-                    Senior Cloud & Backend Architect Draft (92% Base ATS Score)
+                    Draft Resume
                   </option>
                 </select>
               </div>
@@ -192,7 +189,7 @@ export default function AnalyzeJobPage({ onNavigate, onLogout, onAnalysisDone })
                       Job Description Text <span className="text-red-500">*</span>
                     </label>
                     <span className="text-xs text-[#64748B]">
-                      {jobDesc.trim().split(/\s+/).filter(Boolean).length} words
+                      {jobDesc.trim() ? jobDesc.trim().split(/\s+/).filter(Boolean).length : 0} words
                     </span>
                   </div>
                   <textarea

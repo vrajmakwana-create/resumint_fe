@@ -124,7 +124,7 @@ export default function OtpVerificationForm({ email, userId, onBackToLogin, onVe
         <p className="font-body-default text-body-default text-[#64748B] mt-1.5 leading-relaxed">
           We've sent a 6-digit verification code to{' '}
           <span className="font-body-semibold text-[#14243B]">
-            {email || 'alex.morgan@design.io'}
+            {email || 'your email'}
           </span>
           <button
             onClick={onBackToLogin}

@@ -12,7 +12,7 @@ export default function AuthPage({
   onLoginSuccess,
 }) {
   const [registeredEmail, setRegisteredEmail] = useState(
-    () => localStorage.getItem('resumint_email') || 'vraj@yopmail.com'
+    () => localStorage.getItem('resumint_email') || ''
   )
   const [registeredUserId, setRegisteredUserId] = useState(
     () => localStorage.getItem('resumint_user_id') || ''

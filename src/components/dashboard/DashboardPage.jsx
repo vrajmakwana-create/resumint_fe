@@ -33,7 +33,7 @@ export default function DashboardPage({ onNavigate, onLogout }) {
                 type="button"
               >
                 <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
-                <span>+ Analyze Job Description</span>
+                <span>Analyze Job Description</span>
               </button>
             </div>
 

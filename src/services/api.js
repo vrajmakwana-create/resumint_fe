@@ -536,6 +536,14 @@ export function parseExtractedResumeData(extractedData) {
 
 export const resumeApi = {
   /**
+   * Get Personal Information
+   * cURL: GET /resume/personal-info
+   */
+  getPersonalInfo: () =>
+    apiClient('/resume/personal-info', {
+      method: 'GET',
+    }),
+  /**
    * Save Personal Information
    * cURL: POST /resume/save-personal-info
    * @param {{
@@ -564,6 +572,26 @@ export const resumeApi = {
    * cURL: POST /resume/save-professional-summary
    * @param {{ summary: string }} payload
    */
+  /**
+   * Update (Edit) Personal Information
+   * cURL: PATCH /resume/update-personal-info
+   * @param {object} payload
+   */
+  updatePersonalInfo: (payload) =>
+    apiClient('/resume/update-personal-info', {
+      method: 'PATCH',
+      body: payload,
+    }),
+
+  /**
+   * Get Professional Summary
+   * cURL: GET /resume/professional-summary
+   */
+  getProfessionalSummary: () =>
+    apiClient('/resume/professional-summary', {
+      method: 'GET',
+    }),
+
   saveProfessionalSummary: (payload) =>
     apiClient('/resume/save-professional-summary', {
       method: 'POST',
@@ -575,6 +603,17 @@ export const resumeApi = {
    * cURL: POST /resume/save-skills
    * @param {{ skills: string[] }} payload
    */
+  /**
+   * Update (Edit) Professional Summary
+   * cURL: PATCH /resume/update-professional-summary
+   * @param {{ summary: string }} payload
+   */
+  updateProfessionalSummary: (payload) =>
+    apiClient('/resume/update-professional-summary', {
+      method: 'PATCH',
+      body: payload,
+    }),
+
   saveSkills: (payload) =>
     apiClient('/resume/save-skills', {
       method: 'POST',

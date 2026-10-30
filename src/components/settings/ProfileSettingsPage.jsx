@@ -2,23 +2,40 @@ import { useState } from 'react'
 import AppSidebar from '../common/AppSidebar'
 import AppTopbar from '../common/AppTopbar'
 import ThemeToggle from '../common/ThemeToggle'
+import { getCurrentUser } from '../../services/api'
 
 export default function ProfileSettingsPage({ onNavigate, onLogout }) {
+  const currentUser = getCurrentUser()
+  const initialName = currentUser
+    ? `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim()
+    : ''
   const [activeTab, setActiveTab] = useState('general')
-  const [fullName, setFullName] = useState('John Doe')
-  const [profTitle, setProfTitle] = useState('Senior UX / Product Designer')
-  const [email, setEmail] = useState('john.doe@example.com')
-  const [phone, setPhone] = useState('+1 (555) 019-2834')
-  const [location, setLocation] = useState('San Francisco, CA (Remote)')
-  const [portfolio, setPortfolio] = useState('https://johndoe.design')
-  const [linkedin, setLinkedin] = useState('linkedin.com/in/johndoe-ux')
-  const [github, setGithub] = useState('github.com/johndoe')
+  const [fullName, setFullName] = useState(initialName)
+  const [profTitle, setProfTitle] = useState('')
+  const [email, setEmail] = useState(() => currentUser?.email || '')
+  const [phone, setPhone] = useState('')
+  const [location, setLocation] = useState('')
+  const [portfolio, setPortfolio] = useState('')
+  const [linkedin, setLinkedin] = useState('')
+  const [github, setGithub] = useState('')
+  const [desiredTitles, setDesiredTitles] = useState('')
+  const [minBaseTarget, setMinBaseTarget] = useState('')
   const [savedNotification, setSavedNotification] = useState(false)
 
   const handleSave = () => {
     setSavedNotification(true)
     setTimeout(() => setSavedNotification(false), 3000)
   }
+
+  const initials = fullName
+    ? fullName
+        .split(' ')
+        .map((n) => n[0])
+        .filter(Boolean)
+        .slice(0, 2)
+        .join('')
+        .toUpperCase()
+    : 'U'
 
   return (
     <div className="bg-[#F5F8FC] text-[#14243B] font-body-default antialiased flex h-screen overflow-hidden">
@@ -58,8 +75,15 @@ export default function ProfileSettingsPage({ onNavigate, onLogout }) {
                 )}
                 <button
                   onClick={() => {
-                    setFullName('John Doe')
-                    setProfTitle('Senior UX / Product Designer')
+                    setFullName(initialName)
+                    setProfTitle('')
+                    setPhone('')
+                    setLocation('')
+                    setPortfolio('')
+                    setLinkedin('')
+                    setGithub('')
+                    setDesiredTitles('')
+                    setMinBaseTarget('')
                   }}
                   className="h-11 px-5 rounded-lg border border-[#DCE5F0] bg-white text-[#102544] font-body-semibold text-body-semibold hover:bg-slate-50 transition-all cursor-pointer shadow-sm"
                   type="button"
@@ -119,16 +143,12 @@ export default function ProfileSettingsPage({ onNavigate, onLogout }) {
                         Update your personal and professional profile details for targeted resume analyses.
                       </p>
                     </div>
-                    <span className="px-2.5 py-1 rounded-full bg-[#DCFCE7] text-[#15803D] text-badge-label font-badge-label uppercase tracking-wider flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[14px]">check_circle</span>
-                      Profile 95% Complete
-                    </span>
                   </div>
 
                   {/* Avatar Section */}
                   <div className="flex flex-col sm:flex-row sm:items-center gap-6 pb-6 border-b border-[#DCE5F0]/70 mb-6">
                     <div className="w-20 h-20 rounded-full bg-[#EFF6FF] border-2 border-[#2563EB]/30 flex items-center justify-center text-[#2563EB] font-headline-card text-2xl font-bold shrink-0 shadow-inner">
-                      JD
+                      {initials}
                     </div>
                     <div className="flex flex-col gap-2">
                       <div className="flex items-center gap-3">
@@ -161,8 +181,9 @@ export default function ProfileSettingsPage({ onNavigate, onLogout }) {
                           Full Name
                         </label>
                         <input
-                          className="w-full h-11 px-3.5 rounded-lg border border-[#DCE5F0] bg-white text-[#14243B] font-body-default text-sm focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 outline-none transition-all"
+                          className="w-full h-11 px-3.5 rounded-lg border border-[#DCE5F0] bg-white text-[#14243B] font-body-default text-sm focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 outline-none transition-all placeholder-[#94A3B8]"
                           type="text"
+                          placeholder="e.g. John Doe"
                           value={fullName}
                           onChange={(e) => setFullName(e.target.value)}
                         />
@@ -172,8 +193,9 @@ export default function ProfileSettingsPage({ onNavigate, onLogout }) {
                           Professional Title
                         </label>
                         <input
-                          className="w-full h-11 px-3.5 rounded-lg border border-[#DCE5F0] bg-white text-[#14243B] font-body-default text-sm focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 outline-none transition-all"
+                          className="w-full h-11 px-3.5 rounded-lg border border-[#DCE5F0] bg-white text-[#14243B] font-body-default text-sm focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 outline-none transition-all placeholder-[#94A3B8]"
                           type="text"
+                          placeholder="e.g. Senior Software Engineer"
                           value={profTitle}
                           onChange={(e) => setProfTitle(e.target.value)}
                         />
@@ -186,13 +208,11 @@ export default function ProfileSettingsPage({ onNavigate, onLogout }) {
                           <label className="block font-label-form text-[13px] text-[#14243B] font-medium">
                             Email Address
                           </label>
-                          <span className="text-[11px] font-bold text-[#16A34A] flex items-center gap-0.5">
-                            <span className="material-symbols-outlined text-[13px]">verified</span> Verified
-                          </span>
                         </div>
                         <input
-                          className="w-full h-11 px-3.5 rounded-lg border border-[#DCE5F0] bg-white text-[#14243B] font-body-default text-sm focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 outline-none transition-all"
+                          className="w-full h-11 px-3.5 rounded-lg border border-[#DCE5F0] bg-white text-[#14243B] font-body-default text-sm focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 outline-none transition-all placeholder-[#94A3B8]"
                           type="email"
+                          placeholder="e.g. john.doe@example.com"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                         />
@@ -202,8 +222,9 @@ export default function ProfileSettingsPage({ onNavigate, onLogout }) {
                           Phone Number
                         </label>
                         <input
-                          className="w-full h-11 px-3.5 rounded-lg border border-[#DCE5F0] bg-white text-[#14243B] font-body-default text-sm focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 outline-none transition-all"
+                          className="w-full h-11 px-3.5 rounded-lg border border-[#DCE5F0] bg-white text-[#14243B] font-body-default text-sm focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 outline-none transition-all placeholder-[#94A3B8]"
                           type="tel"
+                          placeholder="e.g. +1 (555) 000-0000"
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
                         />
@@ -216,8 +237,9 @@ export default function ProfileSettingsPage({ onNavigate, onLogout }) {
                           Location (City, Country / Remote status)
                         </label>
                         <input
-                          className="w-full h-11 px-3.5 rounded-lg border border-[#DCE5F0] bg-white text-[#14243B] font-body-default text-sm focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 outline-none transition-all"
+                          className="w-full h-11 px-3.5 rounded-lg border border-[#DCE5F0] bg-white text-[#14243B] font-body-default text-sm focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 outline-none transition-all placeholder-[#94A3B8]"
                           type="text"
+                          placeholder="e.g. San Francisco, CA (Remote)"
                           value={location}
                           onChange={(e) => setLocation(e.target.value)}
                         />
@@ -227,8 +249,9 @@ export default function ProfileSettingsPage({ onNavigate, onLogout }) {
                           Portfolio / Website URL
                         </label>
                         <input
-                          className="w-full h-11 px-3.5 rounded-lg border border-[#DCE5F0] bg-white text-[#14243B] font-body-default text-sm focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 outline-none transition-all"
+                          className="w-full h-11 px-3.5 rounded-lg border border-[#DCE5F0] bg-white text-[#14243B] font-body-default text-sm focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 outline-none transition-all placeholder-[#94A3B8]"
                           type="url"
+                          placeholder="e.g. https://yourportfolio.com"
                           value={portfolio}
                           onChange={(e) => setPortfolio(e.target.value)}
                         />
@@ -241,19 +264,21 @@ export default function ProfileSettingsPage({ onNavigate, onLogout }) {
                           LinkedIn Profile URL
                         </label>
                         <input
-                          className="w-full h-11 px-3.5 rounded-lg border border-[#DCE5F0] bg-white text-[#14243B] font-body-default text-sm focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 outline-none transition-all"
+                          className="w-full h-11 px-3.5 rounded-lg border border-[#DCE5F0] bg-white text-[#14243B] font-body-default text-sm focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 outline-none transition-all placeholder-[#94A3B8]"
                           type="text"
+                          placeholder="e.g. linkedin.com/in/username"
                           value={linkedin}
                           onChange={(e) => setLinkedin(e.target.value)}
                         />
                       </div>
                       <div>
                         <label className="block font-label-form text-[13px] text-[#14243B] font-medium mb-1.5">
-                          GitHub / Dribbble
+                          GitHub Profile URL
                         </label>
                         <input
-                          className="w-full h-11 px-3.5 rounded-lg border border-[#DCE5F0] bg-white text-[#14243B] font-body-default text-sm focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 outline-none transition-all"
+                          className="w-full h-11 px-3.5 rounded-lg border border-[#DCE5F0] bg-white text-[#14243B] font-body-default text-sm focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 outline-none transition-all placeholder-[#94A3B8]"
                           type="text"
+                          placeholder="e.g. github.com/username"
                           value={github}
                           onChange={(e) => setGithub(e.target.value)}
                         />
@@ -288,8 +313,10 @@ export default function ProfileSettingsPage({ onNavigate, onLogout }) {
                         Desired Job Titles
                       </label>
                       <input
-                        className="w-full h-11 px-3.5 rounded-lg border border-[#DCE5F0] bg-[#F8FAFC] text-sm text-[#14243B] outline-none"
-                        defaultValue="Staff Product Designer, Principal UX Architect"
+                        className="w-full h-11 px-3.5 rounded-lg border border-[#DCE5F0] bg-white text-sm text-[#14243B] outline-none placeholder-[#94A3B8]"
+                        placeholder="e.g. Senior Software Engineer, Tech Lead"
+                        value={desiredTitles}
+                        onChange={(e) => setDesiredTitles(e.target.value)}
                       />
                     </div>
                     <div>
@@ -297,8 +324,10 @@ export default function ProfileSettingsPage({ onNavigate, onLogout }) {
                         Minimum Base Target (USD / Year)
                       </label>
                       <input
-                        className="w-full h-11 px-3.5 rounded-lg border border-[#DCE5F0] bg-[#F8FAFC] text-sm text-[#14243B] outline-none"
-                        defaultValue="$185,000"
+                        className="w-full h-11 px-3.5 rounded-lg border border-[#DCE5F0] bg-white text-sm text-[#14243B] outline-none placeholder-[#94A3B8]"
+                        placeholder="e.g. $120,000"
+                        value={minBaseTarget}
+                        onChange={(e) => setMinBaseTarget(e.target.value)}
                       />
                     </div>
                   </div>

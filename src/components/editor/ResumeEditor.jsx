@@ -73,14 +73,18 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
       setCompletedSteps(Array.from({ length: Math.max(0, initialStep - 1) }, (_, i) => i + 1))
     }
   }, [initialStep])
-  const [resumeTitle, setResumeTitle] = useState('Alex Morgan — Staff Product Designer Resume')
+
+  const [resumeTitle, setResumeTitle] = useState('Untitled Resume')
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [saveState, setSaveState] = useState(0) // 0: saved, 1: saving, 2: unsaved
   const [isSaving, setIsSaving] = useState(false)
   const [apiFeedback, setApiFeedback] = useState(null)
+  const [errors, setErrors] = useState({})
   const [showCongratsModal, setShowCongratsModal] = useState(false)
   const [isMobilePreviewOpen, setIsMobilePreviewOpen] = useState(false)
   const [isMobileStepsOpen, setIsMobileStepsOpen] = useState(false)
+  const [hasExistingPersonalInfo, setHasExistingPersonalInfo] = useState(false)
+  const [hasExistingSummary, setHasExistingSummary] = useState(false)
 
   const [resumeData, setResumeData] = useState(() => {
     try {
@@ -96,98 +100,287 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
     }
 
     return {
-      first_name: 'Vraj',
-      last_name: 'Makwana',
-      fullName: 'Vraj Makwana',
-      profTitle: 'Python Backend Developer',
-      email: 'vraj@yopmail.com',
-      phone: '+91 7984691562',
-      address: '742 Evergreen Terrace',
-      city: 'Anand',
-      state: 'GJ',
-      zip_code: '97477',
-      country: 'INDIA',
-      website: 'https://johndoe.dev',
-      portfolio: 'https://johndoe.dev',
-      linkedin: 'https://linkedin.com/in/johndoe',
-      github: 'https://github.com/johndoe',
-      location: 'Anand, GJ, INDIA',
-      summary:
-        'Python Backend Developer skilled in building backend applications, RESTful APIs, database-driven systems, and authentication services.',
-      skills: ['Python', 'FastAPI', 'PostgreSQL', 'Docker', 'Kubernetes', 'Redis'],
-      tools: ['Python', 'FastAPI', 'PostgreSQL', 'Docker'],
-      technical: ['REST APIs', 'SQLAlchemy', 'JWT Authentication', 'Async Programming'],
-      leadership: ['Background Tasks', 'API Integration', 'Git', 'CI/CD'],
-      education: [
-        {
-          degree: 'Bachelor of Engineering',
-          school_name: 'GEC Modasa',
-          start_date: '2021',
-          end_date: '2025',
-          gpa: '9.04',
-          field_of_study: 'Computer Engineering',
-          url: 'https://gecmodasa.in',
-          is_current: false,
-        },
-      ],
-      experience: [
-        {
-          job_title: 'Senior Backend Engineer',
-          title: 'Senior Backend Engineer',
-          company_name: 'Acme Cloud Services',
-          company: 'Acme Cloud Services',
-          city: 'San Francisco',
-          state: 'CA',
-          country: 'USA',
-          location_type: 'Hybrid',
-          employment_type: 'Full-time',
-          type: 'Full-time',
-          is_currently_work_here: true,
-          isCurrent: true,
-          start_date: '2022-01',
-          startDate: '2022-01',
-          end_date: '',
-          endDate: 'Present',
-          responsibilities:
-            'Architecting asynchronous REST and gRPC microservices, managing high-throughput PostgreSQL clusters.',
-          achievements: 'Decreased 99th percentile API latency by 42% across 20M daily requests.',
-          bullets: [
-            'Architecting asynchronous REST and gRPC microservices, managing high-throughput PostgreSQL clusters.',
-            'Decreased 99th percentile API latency by 42% across 20M daily requests.',
-          ],
-          order: 1,
-        },
-      ],
-      projects: [
-        {
-          name: 'Real-Time AI Resume Screener',
-          description: 'Distributed semantic evaluation engine for ATS resume parsing and candidate ranking.',
-          url: 'https://github.com/johndoe/resume-screener',
-          start_date: 20230101,
-          end_date: 20230830,
-          status: 'Completed',
-          responsibilities: 'Designed async pipeline using FastAPI, SQLAlchemy, and Celery.',
-          achievements: 'Processed 100K+ resumes in test benchmark.',
-          order: 1,
-        },
-      ],
+      first_name: '',
+      last_name: '',
+      fullName: '',
+      profTitle: '',
+      email: '',
+      phone: '',
+      address: '',
+      city: '',
+      state: '',
+      zip_code: '',
+      country: '',
+      website: '',
+      portfolio: '',
+      linkedin: '',
+      github: '',
+      location: '',
+      summary: '',
+      skills: [],
+      tools: [],
+      technical: [],
+      leadership: [],
+      education: [],
+      experience: [],
+      projects: [],
+      noExperience: false,
+      noProjects: false,
     }
   })
 
   const handleFieldChange = (field, value) => {
     setResumeData((prev) => ({ ...prev, [field]: value }))
     setSaveState(2) // unsaved modification
+
+    // Clear corresponding error(s) in real time
+    setErrors((prev) => {
+      if (!prev || Object.keys(prev).length === 0) return prev
+      const newErr = { ...prev }
+      delete newErr[field]
+
+      if (field === 'education') {
+        Object.keys(newErr).forEach((k) => {
+          if (k.startsWith('edu_')) delete newErr[k]
+        })
+        delete newErr.education
+      }
+      if (field === 'experience' || field === 'noExperience') {
+        Object.keys(newErr).forEach((k) => {
+          if (k.startsWith('exp_')) delete newErr[k]
+        })
+        delete newErr.experience
+      }
+      if (field === 'projects' || field === 'noProjects') {
+        Object.keys(newErr).forEach((k) => {
+          if (k.startsWith('proj_')) delete newErr[k]
+        })
+        delete newErr.projects
+      }
+      if (field === 'tools' || field === 'technical' || field === 'leadership' || field === 'skills') {
+        delete newErr.skills
+      }
+      return newErr
+    })
   }
 
+  // Fetch already filled data from backend on mount and arrange into form state
+  useEffect(() => {
+    let isMounted = true
+
+    const fetchExistingSections = async () => {
+      try {
+        const [personalRes, summaryRes] = await Promise.allSettled([
+          resumeApi.getPersonalInfo(),
+          resumeApi.getProfessionalSummary(),
+        ])
+
+        if (!isMounted) return
+
+        if (personalRes.status === 'fulfilled' && personalRes.value) {
+          const pi = personalRes.value?.data || personalRes.value
+          if (pi && typeof pi === 'object') {
+            const hasData = Boolean(
+              pi.first_name || pi.last_name || pi.email || pi.address || pi.city || pi.country || pi.linkedin
+            )
+            if (hasData) {
+              setResumeData((prev) => ({
+                ...prev,
+                first_name: pi.first_name || prev.first_name || '',
+                last_name: pi.last_name || prev.last_name || '',
+                fullName: `${pi.first_name || prev.first_name || ''} ${pi.last_name || prev.last_name || ''}`.trim(),
+                email: pi.email || prev.email || '',
+                phone: pi.phone || prev.phone || '',
+                address: pi.address || prev.address || '',
+                city: pi.city || prev.city || '',
+                state: pi.state || prev.state || '',
+                zip_code: pi.zip_code || prev.zip_code || '',
+                country: pi.country || prev.country || '',
+                website: pi.website || prev.website || '',
+                portfolio: pi.website || prev.portfolio || '',
+                linkedin: pi.linkedin || prev.linkedin || '',
+                github: pi.github || prev.github || '',
+                location: [pi.city || prev.city, pi.state || prev.state, pi.country || prev.country].filter(Boolean).join(', '),
+              }))
+              setHasExistingPersonalInfo(true)
+            }
+          }
+        }
+
+        if (summaryRes.status === 'fulfilled' && summaryRes.value) {
+          const ps = summaryRes.value?.data || summaryRes.value
+          if (ps && ps.summary) {
+            setResumeData((prev) => ({
+              ...prev,
+              summary: ps.summary || prev.summary || '',
+            }))
+            setHasExistingSummary(true)
+          }
+        }
+      } catch (err) {
+        console.warn('Error fetching existing resume sections from backend:', err)
+      }
+    }
+
+    fetchExistingSections()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  // =========================================================================
+  // STEP VALIDATION LOGIC
+  // =========================================================================
+  const validateStep = (stepNumber) => {
+    const newErrors = {}
+
+    if (stepNumber === 1) {
+      if (!resumeData.first_name || !resumeData.first_name.trim()) {
+        newErrors.first_name = 'First name is required.'
+      }
+      if (!resumeData.last_name || !resumeData.last_name.trim()) {
+        newErrors.last_name = 'Last name is required.'
+      }
+      if (!resumeData.email || !resumeData.email.trim()) {
+        newErrors.email = 'Email address is required.'
+      } else {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(resumeData.email.trim())) {
+          newErrors.email = 'Please enter a valid email address (e.g. name@domain.com).'
+        }
+      }
+      if (!resumeData.address || !resumeData.address.trim()) {
+        newErrors.address = 'Street address is required.'
+      }
+      if (!resumeData.city || !resumeData.city.trim()) {
+        newErrors.city = 'City is required.'
+      }
+      if (!resumeData.state || !resumeData.state.trim()) {
+        newErrors.state = 'State / Region is required.'
+      }
+      if (!resumeData.zip_code || !resumeData.zip_code.trim()) {
+        newErrors.zip_code = 'ZIP / Postal code is required.'
+      }
+      if (!resumeData.country || !resumeData.country.trim()) {
+        newErrors.country = 'Country is required.'
+      }
+      if (!resumeData.linkedin || !resumeData.linkedin.trim()) {
+        newErrors.linkedin = 'LinkedIn URL is required.'
+      }
+    } else if (stepNumber === 2) {
+      if (!resumeData.summary || !resumeData.summary.trim()) {
+        newErrors.summary = 'Professional summary is required.'
+      } else if (resumeData.summary.trim().length < 20) {
+        newErrors.summary = 'Professional summary should be at least 20 characters long.'
+      }
+    } else if (stepNumber === 3) {
+      const allSkills = Array.from(
+        new Set([
+          ...(resumeData.skills || []),
+          ...(resumeData.tools || []),
+          ...(resumeData.technical || []),
+          ...(resumeData.leadership || []),
+        ])
+      ).filter(Boolean)
+
+      if (allSkills.length === 0) {
+        newErrors.skills = 'Please add at least one skill or core competency.'
+      }
+    } else if (stepNumber === 4) {
+      const educations = resumeData.education || []
+      if (educations.length === 0) {
+        newErrors.education = 'Please add at least one education credential.'
+        newErrors['edu_0_degree'] = 'Degree or qualification is required.'
+        newErrors['edu_0_school'] = 'Institution / University name is required.'
+      } else {
+        educations.forEach((edu, idx) => {
+          const hasDegree = Boolean(edu.degree && edu.degree.trim())
+          const hasSchool = Boolean((edu.school_name && edu.school_name.trim()) || (edu.school && edu.school.trim()))
+          if (!hasDegree) {
+            newErrors[`edu_${idx}_degree`] = 'Degree or qualification is required.'
+          }
+          if (!hasSchool) {
+            newErrors[`edu_${idx}_school`] = 'Institution / University name is required.'
+          }
+        })
+        if (Object.keys(newErrors).length > 0) {
+          newErrors.education = 'Please fill in all required education fields (Degree and Institution).'
+        }
+      }
+    } else if (stepNumber === 5) {
+      if (!resumeData.noExperience) {
+        const experiences = resumeData.experience || []
+        if (experiences.length === 0) {
+          newErrors.experience = 'Please add at least one work experience or check "I have no work experience".'
+          newErrors['exp_0_title'] = 'Job title is required.'
+          newErrors['exp_0_company'] = 'Company name is required.'
+        } else {
+          experiences.forEach((exp, idx) => {
+            const hasTitle = Boolean((exp.job_title && exp.job_title.trim()) || (exp.title && exp.title.trim()))
+            const hasCompany = Boolean((exp.company_name && exp.company_name.trim()) || (exp.company && exp.company.trim()))
+            if (!hasTitle) {
+              newErrors[`exp_${idx}_title`] = 'Job title is required.'
+            }
+            if (!hasCompany) {
+              newErrors[`exp_${idx}_company`] = 'Company name is required.'
+            }
+          })
+          if (Object.keys(newErrors).length > 0) {
+            newErrors.experience = 'Please fill in all required experience fields (Job Title and Company).'
+          }
+        }
+      }
+    } else if (stepNumber === 6) {
+      if (!resumeData.noProjects) {
+        const projects = resumeData.projects || []
+        if (projects.length === 0) {
+          newErrors.projects = 'Please add at least one project or check "No projects to highlight right now".'
+          newErrors['proj_0_name'] = 'Project name is required.'
+        } else {
+          projects.forEach((proj, idx) => {
+            const hasName = Boolean(proj.name && proj.name.trim())
+            if (!hasName) {
+              newErrors[`proj_${idx}_name`] = 'Project name is required.'
+            }
+          })
+          if (Object.keys(newErrors).length > 0) {
+            newErrors.projects = 'Please provide a project name for all added projects.'
+          }
+        }
+      }
+    }
+
+    const isValid = Object.keys(newErrors).length === 0
+    return { isValid, errors: newErrors }
+  }
+
+  // =========================================================================
+  // STEP SAVE HANDLERS (WITH DEFENSIVE VALIDATION GUARDS)
+  // =========================================================================
   const saveStep1PersonalInfo = async () => {
+    if (
+      !resumeData.first_name?.trim() ||
+      !resumeData.last_name?.trim() ||
+      !resumeData.email?.trim() ||
+      !resumeData.address?.trim() ||
+      !resumeData.city?.trim() ||
+      !resumeData.state?.trim() ||
+      !resumeData.zip_code?.trim() ||
+      !resumeData.country?.trim() ||
+      !resumeData.linkedin?.trim()
+    ) {
+      return false
+    }
+
     setIsSaving(true)
     setSaveState(1)
     setApiFeedback(null)
     try {
       const payload = {
-        first_name: resumeData.first_name || '',
-        last_name: resumeData.last_name || '',
-        email: resumeData.email || '',
+        first_name: resumeData.first_name.trim(),
+        last_name: resumeData.last_name.trim(),
+        email: resumeData.email.trim(),
         phone: resumeData.phone || '',
         address: resumeData.address || '',
         city: resumeData.city || '',
@@ -198,11 +391,14 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
         github: resumeData.github || '',
         linkedin: resumeData.linkedin || '',
       }
-      const response = await resumeApi.savePersonalInfo(payload)
+      const response = hasExistingPersonalInfo
+        ? await resumeApi.updatePersonalInfo(payload)
+        : await resumeApi.savePersonalInfo(payload)
+      setHasExistingPersonalInfo(true)
       setSaveState(0)
       setApiFeedback({
         type: 'success',
-        message: response?.msg || 'Personal information saved successfully!',
+        message: response?.msg || (hasExistingPersonalInfo ? 'Personal information updated successfully!' : 'Personal information saved successfully!'),
       })
       return true
     } catch (err) {
@@ -218,18 +414,25 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
   }
 
   const saveStep2Summary = async () => {
+    if (!resumeData.summary?.trim()) {
+      return false
+    }
+
     setIsSaving(true)
     setSaveState(1)
     setApiFeedback(null)
     try {
       const payload = {
-        summary: resumeData.summary || '',
+        summary: resumeData.summary.trim(),
       }
-      const response = await resumeApi.saveProfessionalSummary(payload)
+      const response = hasExistingSummary
+        ? await resumeApi.updateProfessionalSummary(payload)
+        : await resumeApi.saveProfessionalSummary(payload)
+      setHasExistingSummary(true)
       setSaveState(0)
       setApiFeedback({
         type: 'success',
-        message: response?.msg || 'Professional summary saved successfully!',
+        message: response?.msg || (hasExistingSummary ? 'Professional summary updated successfully!' : 'Professional summary saved successfully!'),
       })
       return true
     } catch (err) {
@@ -245,22 +448,25 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
   }
 
   const saveStep3Skills = async () => {
+    const allSkills = Array.from(
+      new Set([
+        ...(resumeData.skills || []),
+        ...(resumeData.tools || []),
+        ...(resumeData.technical || []),
+        ...(resumeData.leadership || []),
+      ])
+    ).filter(Boolean)
+
+    if (allSkills.length === 0) {
+      return false
+    }
+
     setIsSaving(true)
     setSaveState(1)
     setApiFeedback(null)
     try {
-      // Gather all skills across categories or flat skills array
-      const allSkills = Array.from(
-        new Set([
-          ...(resumeData.skills || []),
-          ...(resumeData.tools || []),
-          ...(resumeData.technical || []),
-          ...(resumeData.leadership || []),
-        ])
-      ).filter(Boolean)
-
       const payload = {
-        skills: allSkills.length > 0 ? allSkills : ['Python', 'FastAPI', 'PostgreSQL', 'Docker', 'Kubernetes', 'Redis'],
+        skills: allSkills,
       }
 
       const response = await resumeApi.saveSkills(payload)
@@ -283,14 +489,12 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
   }
 
   const saveStep4Education = async () => {
-    setIsSaving(true)
-    setSaveState(1)
-    setApiFeedback(null)
-    try {
-      const rawList = resumeData.education || []
-      const educations = rawList.map((edu) => ({
-        degree: edu.degree || '',
-        school_name: edu.school_name || edu.school || '',
+    const rawList = resumeData.education || []
+    const educations = rawList
+      .filter((edu) => (edu.degree && edu.degree.trim()) || (edu.school_name && edu.school_name.trim()) || (edu.school && edu.school.trim()))
+      .map((edu) => ({
+        degree: (edu.degree || '').trim(),
+        school_name: (edu.school_name || edu.school || '').trim(),
         start_date: edu.start_date || edu.startDate || '',
         end_date: edu.end_date || edu.endDate || '',
         gpa: edu.gpa || '',
@@ -299,22 +503,16 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
         is_current: Boolean(edu.is_current),
       }))
 
+    if (educations.length === 0) {
+      return false
+    }
+
+    setIsSaving(true)
+    setSaveState(1)
+    setApiFeedback(null)
+    try {
       const payload = {
-        educations:
-          educations.length > 0
-            ? educations
-            : [
-                {
-                  degree: 'Bachelor of Engineering',
-                  school_name: 'GEC Modasa',
-                  start_date: '2021',
-                  end_date: '2025',
-                  gpa: '9.04',
-                  field_of_study: 'Computer Engineering',
-                  url: 'https://gecmodasa.in',
-                  is_current: false,
-                },
-              ],
+        educations,
       }
 
       const response = await resumeApi.saveEducationalInfo(payload)
@@ -337,14 +535,17 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
   }
 
   const saveStep5Experience = async () => {
-    setIsSaving(true)
-    setSaveState(1)
-    setApiFeedback(null)
-    try {
-      const rawList = resumeData.experience || []
-      const workExperience = rawList.map((exp, idx) => ({
-        job_title: exp.job_title || exp.title || '',
-        company_name: exp.company_name || exp.company || '',
+    if (resumeData.noExperience) {
+      setSaveState(0)
+      return true
+    }
+
+    const rawList = resumeData.experience || []
+    const workExperience = rawList
+      .filter((exp) => (exp.job_title && exp.job_title.trim()) || (exp.company_name && exp.company_name.trim()))
+      .map((exp, idx) => ({
+        job_title: (exp.job_title || exp.title || '').trim(),
+        company_name: (exp.company_name || exp.company || '').trim(),
         city: exp.city || '',
         state: exp.state || '',
         country: exp.country || '',
@@ -358,29 +559,16 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
         order: exp.order || idx + 1,
       }))
 
+    if (workExperience.length === 0) {
+      return false
+    }
+
+    setIsSaving(true)
+    setSaveState(1)
+    setApiFeedback(null)
+    try {
       const payload = {
-        work_experience:
-          workExperience.length > 0
-            ? workExperience
-            : [
-                {
-                  job_title: 'Senior Backend Engineer',
-                  company_name: 'Acme Cloud Services',
-                  city: 'San Francisco',
-                  state: 'CA',
-                  country: 'USA',
-                  location_type: 'Hybrid',
-                  employment_type: 'Full-time',
-                  is_currently_work_here: true,
-                  start_date: '2022-01',
-                  end_date: null,
-                  responsibilities:
-                    'Architecting asynchronous REST and gRPC microservices, managing high-throughput PostgreSQL clusters.',
-                  achievements:
-                    'Decreased 99th percentile API latency by 42% across 20M daily requests.',
-                  order: 1,
-                },
-              ],
+        work_experience: workExperience,
       }
 
       const response = await resumeApi.saveWorkExperience(payload)
@@ -403,13 +591,16 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
   }
 
   const saveStep6Projects = async () => {
-    setIsSaving(true)
-    setSaveState(1)
-    setApiFeedback(null)
-    try {
-      const rawList = resumeData.projects || []
-      const projects = rawList.map((proj, idx) => ({
-        name: proj.name || '',
+    if (resumeData.noProjects) {
+      setSaveState(0)
+      return true
+    }
+
+    const rawList = resumeData.projects || []
+    const projects = rawList
+      .filter((proj) => proj.name && proj.name.trim())
+      .map((proj, idx) => ({
+        name: proj.name.trim(),
         description: proj.description || '',
         url: proj.url || proj.githubUrl || proj.liveUrl || '',
         start_date: Number(proj.start_date) || 20230101,
@@ -420,24 +611,16 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
         order: proj.order || idx + 1,
       }))
 
+    if (projects.length === 0) {
+      return false
+    }
+
+    setIsSaving(true)
+    setSaveState(1)
+    setApiFeedback(null)
+    try {
       const payload = {
-        projects:
-          projects.length > 0
-            ? projects
-            : [
-                {
-                  name: 'Real-Time AI Resume Screener',
-                  description:
-                    'Distributed semantic evaluation engine for ATS resume parsing and candidate ranking.',
-                  url: 'https://github.com/johndoe/resume-screener',
-                  start_date: 20230101,
-                  end_date: 20230830,
-                  status: 'Completed',
-                  responsibilities: 'Designed async pipeline using FastAPI, SQLAlchemy, and Celery.',
-                  achievements: 'Processed 100K+ resumes in test benchmark.',
-                  order: 1,
-                },
-              ],
+        projects,
       }
 
       const response = await resumeApi.saveProjectsInfo(payload)
@@ -459,7 +642,23 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
     }
   }
 
+  // =========================================================================
+  // ACTIONS: SAVE STEP, NEXT, PREV, STEP CLICK
+  // =========================================================================
   const handleSaveCurrentStep = async () => {
+    const validation = validateStep(currentStep)
+    if (!validation.isValid) {
+      setErrors(validation.errors)
+      const firstErrorMsg = Object.values(validation.errors)[0]
+      setApiFeedback({
+        type: 'error',
+        message: firstErrorMsg || `Please fill in all required fields for Step ${currentStep} before proceeding.`,
+      })
+      return false
+    }
+
+    setErrors({})
+
     let saved = false
     if (currentStep === 1) saved = await saveStep1PersonalInfo()
     else if (currentStep === 2) saved = await saveStep2Summary()
@@ -480,6 +679,8 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
 
     if (currentStep < 6) {
       setCurrentStep((prev) => prev + 1)
+      setErrors({})
+      setApiFeedback(null)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } else {
       // Step 6 completed: mark onboarding as completed & show congratulations modal
@@ -498,53 +699,18 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
   const handlePrev = () => {
     if (currentStep > 1) {
       setCurrentStep((prev) => prev - 1)
+      setErrors({})
+      setApiFeedback(null)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 
-  const handleStepClick = async (targetStep) => {
+  const handleStepClick = (targetStep) => {
     if (targetStep === currentStep || isSaving) return
-
-    // Navigating backwards to an earlier step: allowed anytime
-    if (targetStep < currentStep) {
-      setCurrentStep(targetStep)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-      return
-    }
-
-    // Navigating to the immediate next step: trigger saving current step first
-    if (targetStep === currentStep + 1) {
-      let saved = false
-      if (currentStep === 1) saved = await saveStep1PersonalInfo()
-      else if (currentStep === 2) saved = await saveStep2Summary()
-      else if (currentStep === 3) saved = await saveStep3Skills()
-      else if (currentStep === 4) saved = await saveStep4Education()
-      else if (currentStep === 5) saved = await saveStep5Experience()
-
-      if (saved) {
-        if (!completedSteps.includes(currentStep)) {
-          setCompletedSteps((prev) => [...prev, currentStep])
-        }
-        setCurrentStep(targetStep)
-        window.scrollTo({ top: 0, behavior: 'smooth' })
-      }
-      return
-    }
-
-    // Navigating further ahead: check if all intermediate steps are completed
-    const isTargetAccessible =
-      completedSteps.includes(targetStep) ||
-      completedSteps.includes(targetStep - 1)
-
-    if (isTargetAccessible) {
-      setCurrentStep(targetStep)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    } else {
-      setApiFeedback({
-        type: 'error',
-        message: `Please complete and save Step ${currentStep} first before skipping to Step ${targetStep}.`,
-      })
-    }
+    setCurrentStep(targetStep)
+    setErrors({})
+    setApiFeedback(null)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const stepMeta = stepsConfig[currentStep - 1]
@@ -565,9 +731,9 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
             </span>
           </div>
 
-          <div className="h-5 w-[1px] bg-[#DCE5F0] hidden sm:block shrink-0" />
+          {/* <div className="h-5 w-[1px] bg-[#DCE5F0] hidden sm:block shrink-0" /> */}
 
-          <div className="flex items-center gap-2 truncate">
+          {/* <div className="flex items-center gap-2 truncate">
             {isEditingTitle ? (
               <input
                 type="text"
@@ -591,37 +757,9 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
                 </span>
               </div>
             )}
-            <span className="bg-[#EFF6FF] text-[#2563EB] border border-[#2563EB]/20 px-2.5 py-0.5 rounded-full font-badge-label text-[11px] font-semibold tracking-wide uppercase shrink-0 hidden xl:inline">
-              Target: Senior/Lead Roles
-            </span>
-          </div>
+          </div> */}
         </div>
 
-        {/* Center: Interactive Cloud Save Status */}
-        <div
-          onClick={() => setSaveState((prev) => (prev + 1) % 3)}
-          className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F5F8FC] border border-[#DCE5F0] text-[13px] font-medium text-[#64748B] cursor-pointer hover:border-[#CBD5E1] transition-all shrink-0"
-        >
-          <span
-            className={`w-2 h-2 rounded-full ${
-              saveState === 0 ? 'bg-[#16A34A] animate-pulse' : saveState === 1 ? 'bg-[#F59E0B]' : 'bg-[#DC2626]'
-            }`}
-          />
-          <span className="text-[#64748B]">
-            {saveState === 0
-              ? 'Saved to cloud (12s ago)'
-              : saveState === 1
-              ? 'Saving changes...'
-              : 'Unsaved modifications'}
-          </span>
-          <span
-            className={`material-symbols-outlined text-[15px] text-[#64748B] ${
-              saveState === 1 ? 'animate-spin' : ''
-            }`}
-          >
-            sync
-          </span>
-        </div>
 
         {/* Right: Preview Resume & Exit Setup Actions */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
@@ -683,39 +821,28 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
               {stepsConfig.map((s) => {
                 const isActive = s.id === currentStep
                 const isCompleted = completedSteps.includes(s.id) && !isActive
-                const isAccessible =
-                  s.id <= currentStep ||
-                  s.id === currentStep + 1 ||
-                  completedSteps.includes(s.id) ||
-                  completedSteps.includes(s.id - 1)
 
                 return (
                   <button
                     key={s.id}
                     onClick={() => handleStepClick(s.id)}
                     type="button"
-                    disabled={!isAccessible || isSaving}
-                    className={`w-full text-left flex items-center justify-between px-3.5 py-2.5 rounded-lg border-l-[3px] transition-all font-body-semibold text-[14px] ${
-                      isActive
-                        ? 'border-[#2563EB] bg-[#EFF6FF] text-[#2563EB]'
-                        : isAccessible
-                        ? 'border-transparent text-[#64748B] hover:text-[#14243B] hover:bg-[#F8FAFC] cursor-pointer'
-                        : 'border-transparent text-[#CBD5E1] cursor-not-allowed opacity-60'
-                    }`}
+                    disabled={isSaving}
+                    className={`w-full text-left flex items-center justify-between px-3.5 py-2.5 rounded-lg border-l-[3px] transition-all font-body-semibold text-[14px] ${isActive
+                      ? 'border-[#2563EB] bg-[#EFF6FF] text-[#2563EB]'
+                      : 'border-transparent text-[#64748B] hover:text-[#14243B] hover:bg-[#F8FAFC] cursor-pointer'
+                      }`}
                   >
                     <div className="flex items-center gap-3 truncate">
                       <span
-                        className={`material-symbols-outlined text-[20px] ${
-                          isActive
-                            ? 'text-[#2563EB]'
-                            : isCompleted
+                        className={`material-symbols-outlined text-[20px] ${isActive
+                          ? 'text-[#2563EB]'
+                          : isCompleted
                             ? 'text-[#16A34A]'
-                            : isAccessible
-                            ? 'text-[#64748B]'
-                            : 'text-[#CBD5E1]'
-                        }`}
+                            : 'text-[#64748B]'
+                          }`}
                       >
-                        {isCompleted ? 'check_circle' : !isAccessible ? 'lock' : s.icon}
+                        {isCompleted ? 'check_circle' : s.icon}
                       </span>
                       <span className="truncate">{s.title}</span>
                     </div>
@@ -789,11 +916,10 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
             {/* API Feedback Notification */}
             {apiFeedback && (
               <div
-                className={`mb-4 p-3.5 rounded-lg text-[13px] font-medium flex items-center justify-between ${
-                  apiFeedback.type === 'success'
-                    ? 'bg-[#F0FDF4] border border-[#16A34A]/30 text-[#15803D]'
-                    : 'bg-[#FEF2F2] border border-[#DC2626]/30 text-[#B91C1C]'
-                }`}
+                className={`mb-4 p-3.5 rounded-lg text-[13px] font-medium flex items-center justify-between ${apiFeedback.type === 'success'
+                  ? 'bg-[#F0FDF4] border border-[#16A34A]/30 text-[#15803D]'
+                  : 'bg-[#FEF2F2] border border-[#DC2626]/30 text-[#B91C1C]'
+                  }`}
               >
                 <div className="flex items-center gap-2">
                   <span className="material-symbols-outlined text-[18px]">
@@ -815,22 +941,22 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
             <div className="bg-white rounded-xl border border-[#DCE5F0] p-4 sm:p-6 md:p-8 shadow-sm">
               <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
                 {currentStep === 1 && (
-                  <Step1PersonalInfo data={resumeData} onChange={handleFieldChange} />
+                  <Step1PersonalInfo data={resumeData} onChange={handleFieldChange} errors={errors} />
                 )}
                 {currentStep === 2 && (
-                  <Step2Summary data={resumeData} onChange={handleFieldChange} />
+                  <Step2Summary data={resumeData} onChange={handleFieldChange} errors={errors} />
                 )}
                 {currentStep === 3 && (
-                  <Step3Skills data={resumeData} onChange={handleFieldChange} />
+                  <Step3Skills data={resumeData} onChange={handleFieldChange} errors={errors} />
                 )}
                 {currentStep === 4 && (
-                  <Step4Education data={resumeData} onChange={handleFieldChange} />
+                  <Step4Education data={resumeData} onChange={handleFieldChange} errors={errors} />
                 )}
                 {currentStep === 5 && (
-                  <Step5Experience data={resumeData} onChange={handleFieldChange} />
+                  <Step5Experience data={resumeData} onChange={handleFieldChange} errors={errors} />
                 )}
                 {currentStep === 6 && (
-                  <Step6Projects data={resumeData} onChange={handleFieldChange} />
+                  <Step6Projects data={resumeData} onChange={handleFieldChange} errors={errors} />
                 )}
 
                 {/* Bottom Navigation Controls */}
@@ -838,9 +964,8 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
                   <button
                     onClick={handlePrev}
                     disabled={currentStep === 1}
-                    className={`h-[40px] sm:h-[44px] px-4 sm:px-6 rounded-lg border border-[#DCE5F0] text-[#14243B] font-body-semibold text-[13px] sm:text-[14px] bg-white hover:bg-[#F8FAFC] hover:border-[#CBD5E1] flex items-center gap-1.5 transition-all shadow-sm ${
-                      currentStep === 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-                    }`}
+                    className={`h-[40px] sm:h-[44px] px-4 sm:px-6 rounded-lg border border-[#DCE5F0] text-[#14243B] font-body-semibold text-[13px] sm:text-[14px] bg-white hover:bg-[#F8FAFC] hover:border-[#CBD5E1] flex items-center gap-1.5 transition-all shadow-sm ${currentStep === 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                      }`}
                     type="button"
                   >
                     <span className="material-symbols-outlined text-[18px]">arrow_back</span>
@@ -861,9 +986,8 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
                     <button
                       onClick={handleNext}
                       disabled={isSaving}
-                      className={`h-[40px] sm:h-[44px] px-4 sm:px-7 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-body-semibold text-[13px] sm:text-[14px] flex items-center gap-1.5 shadow-sm transition-all active:scale-[0.99] ${
-                        isSaving ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'
-                      }`}
+                      className={`h-[40px] sm:h-[44px] px-4 sm:px-7 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-body-semibold text-[13px] sm:text-[14px] flex items-center gap-1.5 shadow-sm transition-all active:scale-[0.99] ${isSaving ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'
+                        }`}
                       type="button"
                     >
                       <span className="truncate max-w-[130px] sm:max-w-none">{isSaving ? 'Saving...' : stepMeta.nextBtn}</span>
@@ -880,8 +1004,8 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
           </div>
         </main>
 
-        {/* C. COMPACT LIVE RESUME PREVIEW PANEL (Desktop: static, Mobile/Tablet: slide-over modal) */}
-        <div className="hidden xl:flex h-full">
+        {/* C. LIVE PREVIEW PANE (Desktop layout, width 420px, flex shrink-0) */}
+        <div className="hidden xl:flex w-[430px] border-l border-[#DCE5F0] bg-white flex-col shrink-0 select-none">
           <ResumePreviewPane resumeData={resumeData} currentStep={currentStep} />
         </div>
       </div>
@@ -904,11 +1028,6 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
               {stepsConfig.map((s) => {
                 const isActive = s.id === currentStep
                 const isCompleted = completedSteps.includes(s.id) && !isActive
-                const isAccessible =
-                  s.id <= currentStep ||
-                  s.id === currentStep + 1 ||
-                  completedSteps.includes(s.id) ||
-                  completedSteps.includes(s.id - 1)
 
                 return (
                   <button
@@ -918,14 +1037,11 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
                       setIsMobileStepsOpen(false)
                     }}
                     type="button"
-                    disabled={!isAccessible || isSaving}
-                    className={`w-full text-left flex items-center justify-between px-3 py-2.5 rounded-lg border-l-[3px] transition-all font-body-semibold text-[13px] ${
-                      isActive
-                        ? 'border-[#2563EB] bg-[#EFF6FF] text-[#2563EB]'
-                        : isAccessible
-                        ? 'border-transparent text-[#64748B] hover:text-[#14243B] hover:bg-[#F8FAFC]'
-                        : 'border-transparent text-[#CBD5E1] opacity-60'
-                    }`}
+                    disabled={isSaving}
+                    className={`w-full text-left flex items-center justify-between px-3 py-2.5 rounded-lg border-l-[3px] transition-all font-body-semibold text-[13px] ${isActive
+                      ? 'border-[#2563EB] bg-[#EFF6FF] text-[#2563EB]'
+                      : 'border-transparent text-[#64748B] hover:text-[#14243B] hover:bg-[#F8FAFC] cursor-pointer'
+                      }`}
                   >
                     <div className="flex items-center gap-2.5 truncate">
                       <span className={`material-symbols-outlined text-[18px] ${isActive ? 'text-[#2563EB]' : 'text-[#94A3B8]'}`}>
@@ -989,7 +1105,7 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
                 <span>ONBOARDING COMPLETE</span>
               </div>
               <h2 className="font-headline-page text-[26px] font-bold text-[#102544] tracking-tight">
-                Congratulations, {resumeData.first_name || 'Vraj'}! 🎉
+                Congratulations{resumeData.first_name ? `, ${resumeData.first_name}` : ''}! 🎉
               </h2>
               <p className="text-[14px] text-[#64748B] font-body-default leading-relaxed">
                 Your professional resume has been created, saved, and optimized with{' '}

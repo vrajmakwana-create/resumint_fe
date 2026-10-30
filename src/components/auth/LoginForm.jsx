@@ -3,7 +3,7 @@ import { authApi, setToken, setRefreshToken, setCurrentUser } from '../../servic
 
 export default function LoginForm({ onSwitchToSignup, onSubmitLogin }) {
   const [showPassword, setShowPassword] = useState(false)
-  const [email, setEmail] = useState(() => localStorage.getItem('resumint_email') || 'vraj@yopmail.com')
+  const [email, setEmail] = useState(() => localStorage.getItem('resumint_email') || '')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
   const [isLoading, setIsLoading] = useState(false)

@@ -1,4 +1,4 @@
-export default function Step1PersonalInfo({ data, onChange }) {
+export default function Step1PersonalInfo({ data, onChange, errors = {} }) {
   return (
     <div className="space-y-5">
       {/* Row 1: First Name & Last Name */}
@@ -6,15 +6,25 @@ export default function Step1PersonalInfo({ data, onChange }) {
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <label className="font-label-form text-[13px] text-[#14243B] font-medium" htmlFor="firstName">
-              First Name
+              First Name <span className="text-red-500 font-bold">*</span>
             </label>
-            <span className="text-[12px] text-[#64748B]">Required</span>
+            <span
+              className={`text-[12px] ${
+                errors.first_name ? 'text-red-600 font-semibold' : 'text-[#64748B]'
+              }`}
+            >
+              Required
+            </span>
           </div>
           <div className="relative">
             <input
-              className="w-full h-[44px] px-3.5 bg-white border border-[#DCE5F0] rounded-lg text-[14px] text-[#14243B] placeholder-[#94A3B8] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15 outline-none transition-all font-body-default"
+              className={`w-full h-[44px] px-3.5 bg-white border rounded-lg text-[14px] text-[#14243B] placeholder-[#94A3B8] outline-none transition-all font-body-default ${
+                errors.first_name
+                  ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                  : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15'
+              }`}
               id="firstName"
-              placeholder="Vraj"
+              placeholder="John"
               type="text"
               value={data.first_name || ''}
               onChange={(e) => {
@@ -24,20 +34,36 @@ export default function Step1PersonalInfo({ data, onChange }) {
               }}
             />
           </div>
+          {errors.first_name && (
+            <p className="text-[12px] text-red-600 mt-1 flex items-center gap-1 font-body-medium">
+              <span className="material-symbols-outlined text-[15px]">error</span>
+              <span>{errors.first_name}</span>
+            </p>
+          )}
         </div>
 
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <label className="font-label-form text-[13px] text-[#14243B] font-medium" htmlFor="lastName">
-              Last Name
+              Last Name <span className="text-red-500 font-bold">*</span>
             </label>
-            <span className="text-[12px] text-[#64748B]">Required</span>
+            <span
+              className={`text-[12px] ${
+                errors.last_name ? 'text-red-600 font-semibold' : 'text-[#64748B]'
+              }`}
+            >
+              Required
+            </span>
           </div>
           <div className="relative">
             <input
-              className="w-full h-[44px] px-3.5 bg-white border border-[#DCE5F0] rounded-lg text-[14px] text-[#14243B] placeholder-[#94A3B8] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15 outline-none transition-all font-body-default"
+              className={`w-full h-[44px] px-3.5 bg-white border rounded-lg text-[14px] text-[#14243B] placeholder-[#94A3B8] outline-none transition-all font-body-default ${
+                errors.last_name
+                  ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                  : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15'
+              }`}
               id="lastName"
-              placeholder="Makwana"
+              placeholder="Doe"
               type="text"
               value={data.last_name || ''}
               onChange={(e) => {
@@ -47,6 +73,12 @@ export default function Step1PersonalInfo({ data, onChange }) {
               }}
             />
           </div>
+          {errors.last_name && (
+            <p className="text-[12px] text-red-600 mt-1 flex items-center gap-1 font-body-medium">
+              <span className="material-symbols-outlined text-[15px]">error</span>
+              <span>{errors.last_name}</span>
+            </p>
+          )}
         </div>
       </div>
 
@@ -55,20 +87,36 @@ export default function Step1PersonalInfo({ data, onChange }) {
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <label className="font-label-form text-[13px] text-[#14243B] font-medium" htmlFor="emailAddr">
-              Email Address
+              Email Address <span className="text-red-500 font-bold">*</span>
             </label>
-            <span className="text-[12px] text-[#64748B]">Required</span>
+            <span
+              className={`text-[12px] ${
+                errors.email ? 'text-red-600 font-semibold' : 'text-[#64748B]'
+              }`}
+            >
+              Required
+            </span>
           </div>
           <div className="relative">
             <input
-              className="w-full h-[44px] px-3.5 bg-white border border-[#DCE5F0] rounded-lg text-[14px] text-[#14243B] placeholder-[#94A3B8] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15 outline-none transition-all font-body-default"
+              className={`w-full h-[44px] px-3.5 bg-white border rounded-lg text-[14px] text-[#14243B] placeholder-[#94A3B8] outline-none transition-all font-body-default ${
+                errors.email
+                  ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                  : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15'
+              }`}
               id="emailAddr"
-              placeholder="vraj@yopmail.com"
+              placeholder="alex.morgan@design.io"
               type="email"
               value={data.email || ''}
               onChange={(e) => onChange('email', e.target.value)}
             />
           </div>
+          {errors.email && (
+            <p className="text-[12px] text-red-600 mt-1 flex items-center gap-1 font-body-medium">
+              <span className="material-symbols-outlined text-[15px]">error</span>
+              <span>{errors.email}</span>
+            </p>
+          )}
         </div>
 
         <div className="space-y-1.5">
@@ -82,7 +130,7 @@ export default function Step1PersonalInfo({ data, onChange }) {
             <input
               className="w-full h-[44px] px-3.5 bg-white border border-[#DCE5F0] rounded-lg text-[14px] text-[#14243B] placeholder-[#94A3B8] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15 outline-none transition-all font-body-default"
               id="phoneNum"
-              placeholder="+91 7984691562"
+              placeholder="+1 (555) 234-5678"
               type="tel"
               value={data.phone || ''}
               onChange={(e) => onChange('phone', e.target.value)}
@@ -94,30 +142,62 @@ export default function Step1PersonalInfo({ data, onChange }) {
       {/* Row 3: Street Address & City */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div className="space-y-1.5">
-          <label className="font-label-form text-[13px] text-[#14243B] font-medium" htmlFor="streetAddr">
-            Street Address
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="font-label-form text-[13px] text-[#14243B] font-medium" htmlFor="streetAddr">
+              Street Address <span className="text-red-500 font-bold">*</span>
+            </label>
+            <span
+              className={`text-[12px] ${
+                errors.address ? 'text-red-600 font-semibold' : 'text-[#64748B]'
+              }`}
+            >
+              Required
+            </span>
+          </div>
           <div className="relative">
             <input
-              className="w-full h-[44px] px-3.5 bg-white border border-[#DCE5F0] rounded-lg text-[14px] text-[#14243B] placeholder-[#94A3B8] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15 outline-none transition-all font-body-default"
+              className={`w-full h-[44px] px-3.5 bg-white border rounded-lg text-[14px] text-[#14243B] placeholder-[#94A3B8] outline-none transition-all font-body-default ${
+                errors.address
+                  ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                  : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15'
+              }`}
               id="streetAddr"
-              placeholder="742 Evergreen Terrace"
+              placeholder="123 Market St"
               type="text"
               value={data.address || ''}
               onChange={(e) => onChange('address', e.target.value)}
             />
           </div>
+          {errors.address && (
+            <p className="text-[12px] text-red-600 mt-1 flex items-center gap-1 font-body-medium">
+              <span className="material-symbols-outlined text-[15px]">error</span>
+              <span>{errors.address}</span>
+            </p>
+          )}
         </div>
 
         <div className="space-y-1.5">
-          <label className="font-label-form text-[13px] text-[#14243B] font-medium" htmlFor="city">
-            City
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="font-label-form text-[13px] text-[#14243B] font-medium" htmlFor="city">
+              City <span className="text-red-500 font-bold">*</span>
+            </label>
+            <span
+              className={`text-[12px] ${
+                errors.city ? 'text-red-600 font-semibold' : 'text-[#64748B]'
+              }`}
+            >
+              Required
+            </span>
+          </div>
           <div className="relative">
             <input
-              className="w-full h-[44px] px-3.5 bg-white border border-[#DCE5F0] rounded-lg text-[14px] text-[#14243B] placeholder-[#94A3B8] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15 outline-none transition-all font-body-default"
+              className={`w-full h-[44px] px-3.5 bg-white border rounded-lg text-[14px] text-[#14243B] placeholder-[#94A3B8] outline-none transition-all font-body-default ${
+                errors.city
+                  ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                  : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15'
+              }`}
               id="city"
-              placeholder="Anand"
+              placeholder="San Francisco"
               type="text"
               value={data.city || ''}
               onChange={(e) => {
@@ -127,20 +207,39 @@ export default function Step1PersonalInfo({ data, onChange }) {
               }}
             />
           </div>
+          {errors.city && (
+            <p className="text-[12px] text-red-600 mt-1 flex items-center gap-1 font-body-medium">
+              <span className="material-symbols-outlined text-[15px]">error</span>
+              <span>{errors.city}</span>
+            </p>
+          )}
         </div>
       </div>
 
       {/* Row 4: State, Zip Code, Country */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <div className="space-y-1.5">
-          <label className="font-label-form text-[13px] text-[#14243B] font-medium" htmlFor="state">
-            State / Region
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="font-label-form text-[13px] text-[#14243B] font-medium" htmlFor="state">
+              State / Region <span className="text-red-500 font-bold">*</span>
+            </label>
+            <span
+              className={`text-[12px] ${
+                errors.state ? 'text-red-600 font-semibold' : 'text-[#64748B]'
+              }`}
+            >
+              Required
+            </span>
+          </div>
           <div className="relative">
             <input
-              className="w-full h-[44px] px-3.5 bg-white border border-[#DCE5F0] rounded-lg text-[14px] text-[#14243B] placeholder-[#94A3B8] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15 outline-none transition-all font-body-default"
+              className={`w-full h-[44px] px-3.5 bg-white border rounded-lg text-[14px] text-[#14243B] placeholder-[#94A3B8] outline-none transition-all font-body-default ${
+                errors.state
+                  ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                  : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15'
+              }`}
               id="state"
-              placeholder="GJ"
+              placeholder="CA"
               type="text"
               value={data.state || ''}
               onChange={(e) => {
@@ -150,33 +249,71 @@ export default function Step1PersonalInfo({ data, onChange }) {
               }}
             />
           </div>
+          {errors.state && (
+            <p className="text-[12px] text-red-600 mt-1 flex items-center gap-1 font-body-medium">
+              <span className="material-symbols-outlined text-[15px]">error</span>
+              <span>{errors.state}</span>
+            </p>
+          )}
         </div>
 
         <div className="space-y-1.5">
-          <label className="font-label-form text-[13px] text-[#14243B] font-medium" htmlFor="zipCode">
-            ZIP / Postal Code
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="font-label-form text-[13px] text-[#14243B] font-medium" htmlFor="zipCode">
+              ZIP / Postal Code <span className="text-red-500 font-bold">*</span>
+            </label>
+            <span
+              className={`text-[12px] ${
+                errors.zip_code ? 'text-red-600 font-semibold' : 'text-[#64748B]'
+              }`}
+            >
+              Required
+            </span>
+          </div>
           <div className="relative">
             <input
-              className="w-full h-[44px] px-3.5 bg-white border border-[#DCE5F0] rounded-lg text-[14px] text-[#14243B] placeholder-[#94A3B8] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15 outline-none transition-all font-body-default"
+              className={`w-full h-[44px] px-3.5 bg-white border rounded-lg text-[14px] text-[#14243B] placeholder-[#94A3B8] outline-none transition-all font-body-default ${
+                errors.zip_code
+                  ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                  : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15'
+              }`}
               id="zipCode"
-              placeholder="97477"
+              placeholder="94105"
               type="text"
               value={data.zip_code || ''}
               onChange={(e) => onChange('zip_code', e.target.value)}
             />
           </div>
+          {errors.zip_code && (
+            <p className="text-[12px] text-red-600 mt-1 flex items-center gap-1 font-body-medium">
+              <span className="material-symbols-outlined text-[15px]">error</span>
+              <span>{errors.zip_code}</span>
+            </p>
+          )}
         </div>
 
         <div className="space-y-1.5">
-          <label className="font-label-form text-[13px] text-[#14243B] font-medium" htmlFor="country">
-            Country
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="font-label-form text-[13px] text-[#14243B] font-medium" htmlFor="country">
+              Country <span className="text-red-500 font-bold">*</span>
+            </label>
+            <span
+              className={`text-[12px] ${
+                errors.country ? 'text-red-600 font-semibold' : 'text-[#64748B]'
+              }`}
+            >
+              Required
+            </span>
+          </div>
           <div className="relative">
             <input
-              className="w-full h-[44px] px-3.5 bg-white border border-[#DCE5F0] rounded-lg text-[14px] text-[#14243B] placeholder-[#94A3B8] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15 outline-none transition-all font-body-default"
+              className={`w-full h-[44px] px-3.5 bg-white border rounded-lg text-[14px] text-[#14243B] placeholder-[#94A3B8] outline-none transition-all font-body-default ${
+                errors.country
+                  ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                  : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15'
+              }`}
               id="country"
-              placeholder="INDIA"
+              placeholder="United States"
               type="text"
               value={data.country || ''}
               onChange={(e) => {
@@ -186,6 +323,12 @@ export default function Step1PersonalInfo({ data, onChange }) {
               }}
             />
           </div>
+          {errors.country && (
+            <p className="text-[12px] text-red-600 mt-1 flex items-center gap-1 font-body-medium">
+              <span className="material-symbols-outlined text-[15px]">error</span>
+              <span>{errors.country}</span>
+            </p>
+          )}
         </div>
       </div>
 
@@ -199,7 +342,7 @@ export default function Step1PersonalInfo({ data, onChange }) {
             <input
               className="w-full h-[44px] px-3.5 bg-white border border-[#DCE5F0] rounded-lg text-[14px] text-[#14243B] placeholder-[#94A3B8] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15 outline-none transition-all font-body-default"
               id="website"
-              placeholder="https://johndoe.dev"
+              placeholder="https://yourportfolio.com"
               type="url"
               value={data.website || data.portfolio || ''}
               onChange={(e) => {
@@ -211,19 +354,38 @@ export default function Step1PersonalInfo({ data, onChange }) {
         </div>
 
         <div className="space-y-1.5">
-          <label className="font-label-form text-[13px] text-[#14243B] font-medium" htmlFor="linkedinUrl">
-            LinkedIn Profile
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="font-label-form text-[13px] text-[#14243B] font-medium" htmlFor="linkedinUrl">
+              LinkedIn Profile <span className="text-red-500 font-bold">*</span>
+            </label>
+            <span
+              className={`text-[12px] ${
+                errors.linkedin ? 'text-red-600 font-semibold' : 'text-[#64748B]'
+              }`}
+            >
+              Required
+            </span>
+          </div>
           <div className="relative">
             <input
-              className="w-full h-[44px] px-3.5 bg-white border border-[#DCE5F0] rounded-lg text-[14px] text-[#14243B] placeholder-[#94A3B8] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15 outline-none transition-all font-body-default"
+              className={`w-full h-[44px] px-3.5 bg-white border rounded-lg text-[14px] text-[#14243B] placeholder-[#94A3B8] outline-none transition-all font-body-default ${
+                errors.linkedin
+                  ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                  : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15'
+              }`}
               id="linkedinUrl"
-              placeholder="https://linkedin.com/in/johndoe"
+              placeholder="https://linkedin.com/in/username"
               type="text"
               value={data.linkedin || ''}
               onChange={(e) => onChange('linkedin', e.target.value)}
             />
           </div>
+          {errors.linkedin && (
+            <p className="text-[12px] text-red-600 mt-1 flex items-center gap-1 font-body-medium">
+              <span className="material-symbols-outlined text-[15px]">error</span>
+              <span>{errors.linkedin}</span>
+            </p>
+          )}
         </div>
 
         <div className="space-y-1.5">
@@ -234,7 +396,7 @@ export default function Step1PersonalInfo({ data, onChange }) {
             <input
               className="w-full h-[44px] px-3.5 bg-white border border-[#DCE5F0] rounded-lg text-[14px] text-[#14243B] placeholder-[#94A3B8] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15 outline-none transition-all font-body-default"
               id="githubUrl"
-              placeholder="https://github.com/johndoe"
+              placeholder="https://github.com/username"
               type="text"
               value={data.github || ''}
               onChange={(e) => onChange('github', e.target.value)}

@@ -1,22 +1,170 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { authApi } from '../../services/api'
+
+// Helper function to evaluate password strength and pattern rules
+function evaluatePasswordStrength(pass) {
+  if (!pass) {
+    return {
+      score: 0,
+      label: '',
+      color: '',
+      barColor: 'bg-[#E2E8F0]',
+      icon: '',
+      rules: {
+        minLength: false,
+        hasUpper: false,
+        hasLower: false,
+        hasNumber: false,
+        hasSpecial: false,
+      },
+    }
+  }
+
+  const rules = {
+    minLength: pass.length >= 8,
+    hasUpper: /[A-Z]/.test(pass),
+    hasLower: /[a-z]/.test(pass),
+    hasNumber: /[0-9]/.test(pass),
+    hasSpecial: /[^A-Za-z0-9]/.test(pass),
+  }
+
+  const passedCount = Object.values(rules).filter(Boolean).length
+
+  let score = 1
+  let label = 'Weak'
+  let color = 'text-[#EF4444]'
+  let barColor = 'bg-[#EF4444]'
+  let icon = 'cancel'
+
+  if (rules.minLength && passedCount === 5) {
+    score = 4
+    label = 'Strong'
+    color = 'text-[#16A34A]'
+    barColor = 'bg-[#16A34A]'
+    icon = 'check_circle'
+  } else if (rules.minLength && passedCount >= 3) {
+    score = 3
+    label = 'Good'
+    color = 'text-[#2563EB]'
+    barColor = 'bg-[#2563EB]'
+    icon = 'check_circle'
+  } else if (pass.length >= 6 && passedCount >= 2) {
+    score = 2
+    label = 'Fair'
+    color = 'text-[#F59E0B]'
+    barColor = 'bg-[#F59E0B]'
+    icon = 'info'
+  } else {
+    score = 1
+    label = 'Weak'
+    color = 'text-[#EF4444]'
+    barColor = 'bg-[#EF4444]'
+    icon = 'cancel'
+  }
+
+  return { score, label, color, barColor, icon, rules }
+}
 
 export default function SignupForm({ onSwitchToLogin, onSubmitSignup }) {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [name, setName] = useState('John Doe')
-  const [email, setEmail] = useState('john@gmail.com')
-  const [password, setPassword] = useState(null)
-  const [confirmPassword, setConfirmPassword] = useState(null)
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [termsAgreed, setTermsAgreed] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
   const [successMsg, setSuccessMsg] = useState('')
 
+  const strength = useMemo(() => evaluatePasswordStrength(password), [password])
+
+  // Confirm password real-time validation and color indicator
+  const confirmStatus = useMemo(() => {
+    if (!confirmPassword) {
+      return {
+        status: 'empty',
+        label: '',
+        color: '',
+        bar1: 'bg-[#E2E8F0]',
+        bar2: 'bg-[#E2E8F0]',
+        icon: '',
+        borderColor: 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20',
+        message: 'Re-enter your password to confirm.',
+        msgColor: 'text-[#94A3B8]',
+      }
+    }
+
+    if (password && confirmPassword === password) {
+      return {
+        status: 'matched',
+        label: 'Passwords match',
+        color: 'text-[#16A34A]',
+        bar1: 'bg-[#16A34A]',
+        bar2: 'bg-[#16A34A]',
+        icon: 'check_circle',
+        borderColor: 'border-[#16A34A] focus:border-[#16A34A] focus:ring-2 focus:ring-[#16A34A]/20',
+        message: 'Passwords match perfectly.',
+        msgColor: 'text-[#16A34A] font-medium',
+      }
+    }
+
+    if (password && password.startsWith(confirmPassword)) {
+      return {
+        status: 'matching',
+        label: 'Matching...',
+        color: 'text-[#F59E0B]',
+        bar1: 'bg-[#F59E0B]',
+        bar2: 'bg-[#E2E8F0]',
+        icon: 'pending',
+        borderColor: 'border-[#F59E0B] focus:border-[#F59E0B] focus:ring-2 focus:ring-[#F59E0B]/20',
+        message: 'Keep typing to match password.',
+        msgColor: 'text-[#F59E0B]',
+      }
+    }
+
+    return {
+      status: 'mismatch',
+      label: 'Passwords do not match',
+      color: 'text-[#EF4444]',
+      bar1: 'bg-[#EF4444]',
+      bar2: 'bg-[#E2E8F0]',
+      icon: 'cancel',
+      borderColor: 'border-[#EF4444] focus:border-[#EF4444] focus:ring-2 focus:ring-[#EF4444]/20',
+      message: 'Passwords do not match.',
+      msgColor: 'text-[#EF4444]',
+    }
+  }, [password, confirmPassword])
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setErrorMsg('')
     setSuccessMsg('')
+
+    if (!password || password.length < 8) {
+      setErrorMsg('Password must be at least 8 characters long.')
+      return
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      setErrorMsg('Password must contain at least one uppercase letter.')
+      return
+    }
+
+    if (!/[a-z]/.test(password)) {
+      setErrorMsg('Password must contain at least one lowercase letter.')
+      return
+    }
+
+    if (!/[0-9]/.test(password)) {
+      setErrorMsg('Password must contain at least one number.')
+      return
+    }
+
+    if (!/[^A-Za-z0-9]/.test(password)) {
+      setErrorMsg('Password must contain at least one special character.')
+      return
+    }
 
     if (password !== confirmPassword) {
       setErrorMsg('Passwords do not match.')
@@ -151,20 +299,23 @@ export default function SignupForm({ onSwitchToLogin, onSubmitSignup }) {
           />
         </div>
 
-        {/* Password + Strength Meter */}
+        {/* Password + Dynamic Strength Meter */}
         <div className="space-y-space-2xs text-left">
           <div className="flex justify-between items-center">
             <label className="block font-label-form text-label-form text-[#14243B]" htmlFor="signup-password">
               Password
             </label>
-            <span className="font-caption-helper text-[11px] font-semibold text-[#16A34A] flex items-center gap-1">
-              <span className="material-symbols-outlined text-[14px]">check_circle</span> Strong
-            </span>
+            {password && strength.label && (
+              <span className={`font-caption-helper text-[11px] font-semibold ${strength.color} flex items-center gap-1 transition-all`}>
+                <span className="material-symbols-outlined text-[14px]">{strength.icon}</span> {strength.label}
+              </span>
+            )}
           </div>
           <div className="relative">
             <input
               className="w-full h-[44px] pl-3.5 pr-10 bg-white border border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 rounded-lg font-body-default text-body-default text-[#14243B] placeholder-[#94A3B8] outline-none transition-all"
               id="signup-password"
+              placeholder="••••••••••••"
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -181,23 +332,69 @@ export default function SignupForm({ onSwitchToLogin, onSubmitSignup }) {
               </span>
             </button>
           </div>
-          {/* Password strength progress indicator */}
+
+          {/* Dynamic 4-Segment Password Strength Progress Bar */}
           <div className="grid grid-cols-4 gap-1.5 pt-1">
-            <div className="h-1.5 rounded-full bg-[#16A34A]"></div>
-            <div className="h-1.5 rounded-full bg-[#16A34A]"></div>
-            <div className="h-1.5 rounded-full bg-[#16A34A]"></div>
-            <div className="h-1.5 rounded-full bg-[#16A34A]"></div>
+            {[1, 2, 3, 4].map((index) => (
+              <div
+                key={index}
+                className={`h-1.5 rounded-full transition-colors duration-300 ${
+                  index <= strength.score ? strength.barColor : 'bg-[#E2E8F0]'
+                }`}
+              />
+            ))}
           </div>
+
+          {/* Password pattern requirement feedback */}
+          {password ? (
+            <div className="grid grid-cols-2 gap-x-2 gap-y-1 pt-1.5 text-[11px] font-caption-helper">
+              <div className={`flex items-center gap-1 transition-colors ${strength.rules.minLength ? 'text-[#16A34A] font-medium' : 'text-[#94A3B8]'}`}>
+                <span className="material-symbols-outlined text-[13px]">
+                  {strength.rules.minLength ? 'check_circle' : 'radio_button_unchecked'}
+                </span>
+                <span>8+ characters</span>
+              </div>
+              <div className={`flex items-center gap-1 transition-colors ${strength.rules.hasUpper && strength.rules.hasLower ? 'text-[#16A34A] font-medium' : 'text-[#94A3B8]'}`}>
+                <span className="material-symbols-outlined text-[13px]">
+                  {strength.rules.hasUpper && strength.rules.hasLower ? 'check_circle' : 'radio_button_unchecked'}
+                </span>
+                <span>Upper & lower case</span>
+              </div>
+              <div className={`flex items-center gap-1 transition-colors ${strength.rules.hasNumber ? 'text-[#16A34A] font-medium' : 'text-[#94A3B8]'}`}>
+                <span className="material-symbols-outlined text-[13px]">
+                  {strength.rules.hasNumber ? 'check_circle' : 'radio_button_unchecked'}
+                </span>
+                <span>At least 1 number</span>
+              </div>
+              <div className={`flex items-center gap-1 transition-colors ${strength.rules.hasSpecial ? 'text-[#16A34A] font-medium' : 'text-[#94A3B8]'}`}>
+                <span className="material-symbols-outlined text-[13px]">
+                  {strength.rules.hasSpecial ? 'check_circle' : 'radio_button_unchecked'}
+                </span>
+                <span>Special character (!@#$)</span>
+              </div>
+            </div>
+          ) : (
+            <p className="font-caption-helper text-[11px] text-[#94A3B8] pt-0.5">
+              Minimum 8 characters with letters, numbers & symbols.
+            </p>
+          )}
         </div>
 
-        {/* Confirm Password */}
+        {/* Confirm Password + Dynamic Match Progress & Color Bar */}
         <div className="space-y-space-2xs text-left">
-          <label className="block font-label-form text-label-form text-[#14243B]" htmlFor="signup-confirm-password">
-            Confirm Password
-          </label>
+          <div className="flex justify-between items-center">
+            <label className="block font-label-form text-label-form text-[#14243B]" htmlFor="signup-confirm-password">
+              Confirm Password
+            </label>
+            {confirmPassword && confirmStatus.label && (
+              <span className={`font-caption-helper text-[11px] font-semibold ${confirmStatus.color} flex items-center gap-1 transition-all`}>
+                <span className="material-symbols-outlined text-[14px]">{confirmStatus.icon}</span> {confirmStatus.label}
+              </span>
+            )}
+          </div>
           <div className="relative">
             <input
-              className="w-full h-[44px] pl-3.5 pr-10 bg-white border border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 rounded-lg font-body-default text-body-default text-[#14243B] placeholder-[#94A3B8] outline-none transition-all"
+              className={`w-full h-[44px] pl-3.5 pr-10 bg-white border rounded-lg font-body-default text-body-default text-[#14243B] placeholder-[#94A3B8] outline-none transition-all ${confirmStatus.borderColor}`}
               id="signup-confirm-password"
               placeholder="••••••••••••"
               type={showConfirmPassword ? 'text' : 'password'}
@@ -215,6 +412,24 @@ export default function SignupForm({ onSwitchToLogin, onSubmitSignup }) {
                 {showConfirmPassword ? 'visibility_off' : 'visibility'}
               </span>
             </button>
+          </div>
+
+          {/* Dynamic 2-Segment Confirm Password Match Progress Bar */}
+          <div className="grid grid-cols-2 gap-1.5 pt-1">
+            <div className={`h-1.5 rounded-full transition-colors duration-300 ${confirmStatus.bar1}`} />
+            <div className={`h-1.5 rounded-full transition-colors duration-300 ${confirmStatus.bar2}`} />
+          </div>
+
+          {/* Confirm match message feedback */}
+          <div className="flex items-center gap-1 pt-0.5 text-[11px] font-caption-helper">
+            {confirmPassword && (
+              <span className={`material-symbols-outlined text-[13px] ${confirmStatus.color}`}>
+                {confirmStatus.icon}
+              </span>
+            )}
+            <span className={confirmStatus.msgColor}>
+              {confirmStatus.message}
+            </span>
           </div>
         </div>
 

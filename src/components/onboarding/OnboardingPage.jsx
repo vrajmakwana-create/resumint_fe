@@ -97,16 +97,6 @@ export default function OnboardingPage({ onStartScratch, onUploadResume, onSignO
             </div>
           </div>
 
-          {/* Center: Setup Step Indicator Pill */}
-          <div className="hidden sm:flex items-center gap-space-sm bg-[#f1f4f8] px-space-md py-1.5 rounded-full border border-[#DCE5F0]">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#2563EB] ring-2 ring-[#dbe1ff]" />
-              <span className="w-2 h-2 rounded-full bg-[#c3c6d7]" />
-            </div>
-            <span className="font-body-semibold text-body-semibold text-[#181c1f]">Step 1 of 2:</span>
-            <span className="font-body-medium text-body-medium text-[#434655]">Setup Method</span>
-          </div>
-
           {/* Right: User Email / Support & Sign Out */}
           <div className="flex items-center gap-2 sm:gap-space-md">
             <button
@@ -134,10 +124,6 @@ export default function OnboardingPage({ onStartScratch, onUploadResume, onSignO
         <div className="w-full max-w-[1020px] mx-auto">
           {/* Hero Section Header */}
           <div className="text-center max-w-2xl mx-auto mb-space-xl">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#d6e3ff] text-[#004ac6] font-badge-label text-badge-label tracking-wider uppercase mb-space-xs">
-              <span className="material-symbols-outlined text-[14px]">spark</span>
-              GETTING STARTED
-            </div>
             <h1 className="font-headline-page text-headline-page md:text-[32px] text-[#14243B] tracking-tight mb-space-xs">
               Let's build your professional story.
             </h1>

@@ -130,14 +130,7 @@ export default function Step5Experience({ data, onChange, errors = {} }) {
           )}
         </div>
       </div>
-
-      {/* Top Error Notice */}
-      {errors.experience && (
-        <div className="p-3 bg-[#FEF2F2] border border-[#DC2626]/30 rounded-lg text-[#B91C1C] text-[13px] flex items-center gap-2">
-          <span className="material-symbols-outlined text-[18px]">error</span>
-          <span className="font-medium">{errors.experience}</span>
-        </div>
-      )}
+      
 
       {/* Fresher Empty State Banner */}
       {isFresher ? (
@@ -168,11 +161,10 @@ export default function Step5Experience({ data, onChange, errors = {} }) {
             return (
               <div
                 key={expIdx}
-                className={`bg-white border rounded-xl p-6 shadow-sm transition-all ${
-                  titleError || companyError
-                    ? 'border-red-400 ring-1 ring-red-400/20'
-                    : 'border-[#DCE5F0] hover:border-[#2563EB]/40'
-                }`}
+                className={`bg-white border rounded-xl p-6 shadow-sm transition-all ${titleError || companyError
+                  ? 'border-red-400 ring-1 ring-red-400/20'
+                  : 'border-[#DCE5F0] hover:border-[#2563EB]/40'
+                  }`}
               >
                 {/* Header */}
                 <div className="flex items-center justify-between pb-4 border-b border-[#DCE5F0] mb-5">
@@ -212,11 +204,10 @@ export default function Step5Experience({ data, onChange, errors = {} }) {
                         Job Title <span className="text-red-500 font-bold">*</span>
                       </label>
                       <input
-                        className={`w-full h-11 px-3.5 rounded-lg border bg-white text-[#14243B] font-body-default text-body-default outline-none transition-all ${
-                          titleError
-                            ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
-                            : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20'
-                        }`}
+                        className={`w-full h-11 px-3.5 rounded-lg border bg-white text-[#14243B] font-body-default text-body-default outline-none transition-all ${titleError
+                          ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                          : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20'
+                          }`}
                         type="text"
                         placeholder="e.g. Software Engineer"
                         value={exp.job_title || exp.title || ''}
@@ -234,11 +225,10 @@ export default function Step5Experience({ data, onChange, errors = {} }) {
                         Company Name <span className="text-red-500 font-bold">*</span>
                       </label>
                       <input
-                        className={`w-full h-11 px-3.5 rounded-lg border bg-white text-[#14243B] font-body-default text-body-default outline-none transition-all ${
-                          companyError
-                            ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
-                            : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20'
-                        }`}
+                        className={`w-full h-11 px-3.5 rounded-lg border bg-white text-[#14243B] font-body-default text-body-default outline-none transition-all ${companyError
+                          ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                          : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20'
+                          }`}
                         type="text"
                         placeholder="e.g. Acme Corp"
                         value={exp.company_name || exp.company || ''}

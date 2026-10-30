@@ -625,9 +625,29 @@ export const resumeApi = {
       body: payload,
     }),
 
+  /**
+   * Get Skills
+   * cURL: GET /resume/skills
+   */
+  getSkills: () =>
+    apiClient('/resume/skills', {
+      method: 'GET',
+    }),
+
   saveSkills: (payload) =>
     apiClient('/resume/save-skills', {
       method: 'POST',
+      body: payload,
+    }),
+
+  /**
+   * Update (Edit) Skills
+   * cURL: PATCH /resume/update-skills
+   * @param {{ skills: string[] }} payload
+   */
+  updateSkills: (payload) =>
+    apiClient('/resume/update-skills', {
+      method: 'PATCH',
       body: payload,
     }),
 
@@ -645,6 +665,15 @@ export const resumeApi = {
    *   is_current?: boolean
    * }> }} payload
    */
+  /**
+   * Get Educational Information
+   * cURL: GET /resume/educational-info
+   */
+  getEducationalInfo: () =>
+    apiClient('/resume/educational-info', {
+      method: 'GET',
+    }),
+
   saveEducationalInfo: (payload) =>
     apiClient('/resume/save-educational-info', {
       method: 'POST',
@@ -652,24 +681,25 @@ export const resumeApi = {
     }),
 
   /**
-   * Save Work Experience
-   * cURL: POST /resume/save-work-experience
-   * @param {{ work_experience: Array<{
-   *   job_title: string,
-   *   company_name: string,
-   *   city: string,
-   *   state: string,
-   *   country: string,
-   *   location_type: string,
-   *   employment_type: string,
-   *   is_currently_work_here: boolean,
-   *   start_date: string,
-   *   end_date: string | null,
-   *   responsibilities: string,
-   *   achievements: string,
-   *   order?: number
-   * }> }} payload
+   * Update Educational Information
+   * cURL: PATCH /resume/update-educational-info
+   * @param {{ educations: Array<object> }} payload
    */
+  updateEducationalInfo: (payload) =>
+    apiClient('/resume/update-educational-info', {
+      method: 'PATCH',
+      body: payload,
+    }),
+
+  /**
+   * Get Work Experience
+   * cURL: GET /resume/work-experience
+   */
+  getWorkExperience: () =>
+    apiClient('/resume/work-experience', {
+      method: 'GET',
+    }),
+
   saveWorkExperience: (payload) =>
     apiClient('/resume/save-work-experience', {
       method: 'POST',
@@ -677,23 +707,39 @@ export const resumeApi = {
     }),
 
   /**
-   * Save Projects Information
-   * cURL: POST /resume/save-projects-info
-   * @param {{ projects: Array<{
-   *   name: string,
-   *   description: string,
-   *   url: string,
-   *   start_date: number,
-   *   end_date: number,
-   *   status: string,
-   *   responsibilities: string,
-   *   achievements: string,
-   *   order?: number
-   * }> }} payload
+   * Update Work Experience
+   * cURL: PATCH /resume/update-work-experience
+   * @param {{ work_experience: Array<object> }} payload
    */
+  updateWorkExperience: (payload) =>
+    apiClient('/resume/update-work-experience', {
+      method: 'PATCH',
+      body: payload,
+    }),
+
+  /**
+   * Get Projects Information
+   * cURL: GET /resume/projects-info
+   */
+  getProjectsInfo: () =>
+    apiClient('/resume/projects-info', {
+      method: 'GET',
+    }),
+
   saveProjectsInfo: (payload) =>
     apiClient('/resume/save-projects-info', {
       method: 'POST',
+      body: payload,
+    }),
+
+  /**
+   * Update Projects Information
+   * cURL: PATCH /resume/update-projects-info
+   * @param {{ projects: Array<object> }} payload
+   */
+  updateProjectsInfo: (payload) =>
+    apiClient('/resume/update-projects-info', {
+      method: 'PATCH',
       body: payload,
     }),
 

@@ -75,14 +75,6 @@ export default function Step4Education({ data, onChange, errors = {} }) {
         </div>
       </div>
 
-      {/* Top Error Notice */}
-      {errors.education && (
-        <div className="p-3 bg-[#FEF2F2] border border-[#DC2626]/30 rounded-lg text-[#B91C1C] text-[13px] flex items-center gap-2">
-          <span className="material-symbols-outlined text-[18px]">error</span>
-          <span className="font-medium">{errors.education}</span>
-        </div>
-      )}
-
       {/* Education Cards */}
       <div className="space-y-5">
         {items.map((edu, index) => {
@@ -92,9 +84,8 @@ export default function Step4Education({ data, onChange, errors = {} }) {
           return (
             <div
               key={index}
-              className={`bg-white rounded-xl border shadow-sm transition-all ${
-                degreeError || schoolError ? 'border-red-400 ring-1 ring-red-400/20' : 'border-[#DCE5F0] hover:border-[#2563EB]/40'
-              }`}
+              className={`bg-white rounded-xl border shadow-sm transition-all ${degreeError || schoolError ? 'border-red-400 ring-1 ring-red-400/20' : 'border-[#DCE5F0] hover:border-[#2563EB]/40'
+                }`}
             >
               {/* Card Header Bar */}
               <div className="px-6 py-4 border-b border-[#DCE5F0] flex items-center justify-between bg-[#F8FAFC] rounded-t-xl">
@@ -133,11 +124,10 @@ export default function Step4Education({ data, onChange, errors = {} }) {
                       Degree or Qualification <span className="text-red-500 font-bold">*</span>
                     </label>
                     <input
-                      className={`w-full h-11 px-3.5 rounded-lg border bg-white text-[#14243B] font-body-default text-body-default transition-all outline-none ${
-                        degreeError
-                          ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
-                          : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20'
-                      }`}
+                      className={`w-full h-11 px-3.5 rounded-lg border bg-white text-[#14243B] font-body-default text-body-default transition-all outline-none ${degreeError
+                        ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                        : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20'
+                        }`}
                       placeholder="e.g. Bachelor of Science in Computer Science"
                       type="text"
                       value={edu.degree || ''}
@@ -155,11 +145,10 @@ export default function Step4Education({ data, onChange, errors = {} }) {
                       Institution / University Name <span className="text-red-500 font-bold">*</span>
                     </label>
                     <input
-                      className={`w-full h-11 px-3.5 rounded-lg border bg-white text-[#14243B] font-body-default text-body-default transition-all outline-none ${
-                        schoolError
-                          ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
-                          : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20'
-                      }`}
+                      className={`w-full h-11 px-3.5 rounded-lg border bg-white text-[#14243B] font-body-default text-body-default transition-all outline-none ${schoolError
+                        ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                        : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20'
+                        }`}
                       placeholder="e.g. Stanford University"
                       type="text"
                       value={edu.school_name || edu.school || ''}
@@ -266,7 +255,7 @@ export default function Step4Education({ data, onChange, errors = {} }) {
         type="button"
       >
         <span className="material-symbols-outlined text-[18px]">add_circle</span>
-        <span>+ Add Another Degree or Educational Credential</span>
+        <span>Add Another Degree or Educational Credential</span>
       </button>
     </div>
   )

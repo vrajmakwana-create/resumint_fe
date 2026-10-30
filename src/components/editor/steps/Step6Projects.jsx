@@ -93,14 +93,6 @@ export default function Step6Projects({ data, onChange, errors = {} }) {
         </div>
       </div>
 
-      {/* Top Error Notice */}
-      {errors.projects && (
-        <div className="p-3 bg-[#FEF2F2] border border-[#DC2626]/30 rounded-lg text-[#B91C1C] text-[13px] flex items-center gap-2">
-          <span className="material-symbols-outlined text-[18px]">error</span>
-          <span className="font-medium">{errors.projects}</span>
-        </div>
-      )}
-
       {/* No Projects State Banner */}
       {noProjects ? (
         <div className="p-6 rounded-xl bg-[#F8FAFC] border border-[#DCE5F0] text-center space-y-2">
@@ -128,9 +120,8 @@ export default function Step6Projects({ data, onChange, errors = {} }) {
             return (
               <div
                 key={idx}
-                className={`bg-white rounded-xl border p-6 shadow-sm space-y-4 transition-all ${
-                  nameError ? 'border-red-400 ring-1 ring-red-400/20' : 'border-[#DCE5F0] hover:border-[#2563EB]/40'
-                }`}
+                className={`bg-white rounded-xl border p-6 shadow-sm space-y-4 transition-all ${nameError ? 'border-red-400 ring-1 ring-red-400/20' : 'border-[#DCE5F0] hover:border-[#2563EB]/40'
+                  }`}
               >
                 {/* Header */}
                 <div className="flex items-start justify-between pb-3 border-b border-[#DCE5F0]">
@@ -171,11 +162,10 @@ export default function Step6Projects({ data, onChange, errors = {} }) {
                         Project Name <span className="text-red-500 font-bold">*</span>
                       </label>
                       <input
-                        className={`w-full h-11 px-3.5 bg-white border rounded-lg text-[14px] text-[#14243B] font-body-default outline-none transition-all ${
-                          nameError
-                            ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
-                            : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15'
-                        }`}
+                        className={`w-full h-11 px-3.5 bg-white border rounded-lg text-[14px] text-[#14243B] font-body-default outline-none transition-all ${nameError
+                          ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                          : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15'
+                          }`}
                         type="text"
                         placeholder="e.g. Distributed Cloud File Storage"
                         value={proj.name || ''}

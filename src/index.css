@@ -259,7 +259,31 @@ html.dark .custom-shadow-elevated {
   box-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.6), 0 4px 10px -2px rgba(0, 0, 0, 0.4) !important;
 }
 
+/* Skill chips inside editor (supporting dark and light mode) */
+.editor-skill-chip {
+  background-color: #FFFFFF;
+  color: #102544;
+  border-color: #CBD5E1;
+}
+
+html.dark .editor-skill-chip {
+  background-color: #1E293B !important;
+  color: #F1F5F9 !important;
+  border-color: #334155 !important;
+}
+
+html.dark .editor-skill-chip:hover {
+  border-color: #3B82F6 !important;
+}
+
 /* 7. Printable Live Resume Preview Sheet Protection (Realistic White Paper on Dark Desk) */
+html.dark .resume-paper-canvas .skill-chip,
+.resume-paper-canvas .skill-chip {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  border: 1px solid #CBD5E1 !important;
+}
+
 html.dark .resume-paper-canvas,
 html.dark .resume-paper-canvas.bg-white {
   background-color: #FFFFFF !important;

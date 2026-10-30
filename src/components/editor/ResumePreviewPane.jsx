@@ -176,15 +176,24 @@ export default function ResumePreviewPane({ resumeData, currentStep }) {
                 </span>
               )}
             </div>
-            <div className="flex flex-wrap gap-1 pt-0.5">
-              {(skills.length > 0 ? skills : tools).slice(0, 10).map((skill, sIdx) => (
-                <span
-                  key={sIdx}
-                  className="bg-[#F1F5F9] text-[#14243B] px-1.5 py-0.5 rounded text-[8px] font-medium"
-                >
-                  {skill}
-                </span>
-              ))}
+            <div className="flex flex-wrap gap-1.5 pt-0.5">
+              {(skills.length > 0 ? skills : tools).slice(0, 10).map((skill, sIdx) => {
+                const label =
+                  typeof skill === 'object' && skill !== null
+                    ? skill.name || skill.skill || skill.title || ''
+                    : String(skill || '')
+                if (!label) return null
+
+                return (
+                  <span
+                    key={sIdx}
+                    className="skill-chip inline-block bg-white text-black border border-[#CBD5E1] px-2 py-0.5 rounded text-[8.5px] font-medium shadow-2xs"
+                    style={{ backgroundColor: '#ffffff', color: '#000000', borderColor: '#CBD5E1' }}
+                  >
+                    {label}
+                  </span>
+                )
+              })}
             </div>
           </div>
 

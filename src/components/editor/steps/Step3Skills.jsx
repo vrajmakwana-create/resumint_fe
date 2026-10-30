@@ -136,24 +136,24 @@ export default function Step3Skills({ data, onChange, errors = {} }) {
         </div>
 
         {skills.length === 0 ? (
-          <div className="p-6 bg-white border border-dashed border-[#CBD5E1] rounded-xl text-center">
-            <span className="material-symbols-outlined text-[28px] text-[#94A3B8] mb-1">psychology</span>
-            <p className="text-[13px] font-body-medium text-[#14243B]">No skills added yet</p>
-            <p className="text-[12px] text-[#64748B] mt-0.5">
-              Add skills using the input box above or click on AI suggested skills below.
+          <div className="p-6 bg-white dark:bg-[#151E32] border border-dashed border-[#CBD5E1] dark:border-[#24334A] rounded-xl text-center">
+            <span className="material-symbols-outlined text-[28px] text-[#94A3B8] dark:text-[#64748B] mb-1">psychology</span>
+            <p className="text-[13px] font-body-medium text-[#14243B] dark:text-[#F1F5F9]">No skills added yet</p>
+            <p className="text-[12px] text-[#64748B] dark:text-[#94A3B8] mt-0.5">
+              Add skills using the input box above.
             </p>
           </div>
         ) : (
-          <div className="p-4 bg-white border border-[#DCE5F0] rounded-xl min-h-[64px] flex flex-wrap gap-2 items-center">
+          <div className="p-4 bg-white dark:bg-[#151E32] border border-[#DCE5F0] dark:border-[#24334A] rounded-xl min-h-[64px] flex flex-wrap gap-2 items-center">
             {skills.map((skill, idx) => (
               <span
                 key={idx}
-                className="inline-flex items-center gap-1.5 bg-[#EFF6FF] border border-[#2563EB]/30 text-[#14243B] text-[13px] font-body-medium px-3 py-1.5 rounded-lg shadow-2xs hover:border-[#2563EB]/50 transition-colors"
+                className="editor-skill-chip inline-flex items-center gap-1.5 bg-white dark:bg-[#1E293B] border border-[#CBD5E1] dark:border-[#334155] text-[#102544] dark:text-[#F1F5F9] text-[13px] font-body-medium px-3 py-1.5 rounded-lg shadow-2xs hover:border-[#2563EB]/50 dark:hover:border-[#3B82F6]/50 transition-colors"
               >
-                <span className="font-medium text-[#102544]">{skill}</span>
+                <span className="font-medium">{skill}</span>
                 <button
                   onClick={() => handleRemoveSkill(skill)}
-                  className="hover:text-[#DC2626] text-[#64748B] flex items-center ml-0.5 cursor-pointer transition-colors"
+                  className="text-[#64748B] dark:text-[#94A3B8] hover:text-[#DC2626] dark:hover:text-[#F87171] flex items-center ml-0.5 cursor-pointer transition-colors"
                   title={`Remove ${skill}`}
                   type="button"
                 >

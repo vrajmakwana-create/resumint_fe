@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Step1PersonalInfo from './steps/Step1PersonalInfo'
 import Step2Summary from './steps/Step2Summary'
 import Step3Skills from './steps/Step3Skills'
@@ -105,8 +105,10 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
     }
   }, [])
 
+  const prevInitialStepRef = useRef(initialStep)
   useEffect(() => {
-    if (initialStep && initialStep >= 1 && initialStep <= 6) {
+    if (initialStep !== prevInitialStepRef.current && initialStep >= 1 && initialStep <= 6) {
+      prevInitialStepRef.current = initialStep
       const maxAllowed = Math.min(6, (stepCount || 0) + 1)
       setCurrentStep(Math.min(initialStep, maxAllowed))
     }
@@ -123,6 +125,10 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
   const [isMobileStepsOpen, setIsMobileStepsOpen] = useState(false)
   const [hasExistingPersonalInfo, setHasExistingPersonalInfo] = useState(false)
   const [hasExistingSummary, setHasExistingSummary] = useState(false)
+  const [hasExistingSkills, setHasExistingSkills] = useState(false)
+  const [hasExistingEducation, setHasExistingEducation] = useState(false)
+  const [hasExistingExperience, setHasExistingExperience] = useState(false)
+  const [hasExistingProjects, setHasExistingProjects] = useState(false)
 
   const [resumeData, setResumeData] = useState(() => {
     try {
@@ -208,9 +214,13 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
 
     const fetchExistingSections = async () => {
       try {
-        const [personalRes, summaryRes] = await Promise.allSettled([
+        const [personalRes, summaryRes, skillsRes, eduRes, expRes, projRes] = await Promise.allSettled([
           resumeApi.getPersonalInfo(),
           resumeApi.getProfessionalSummary(),
+          resumeApi.getSkills(),
+          resumeApi.getEducationalInfo(),
+          resumeApi.getWorkExperience(),
+          resumeApi.getProjectsInfo(),
         ])
 
         if (!isMounted) return
@@ -253,6 +263,162 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
               summary: ps.summary || prev.summary || '',
             }))
             setHasExistingSummary(true)
+          }
+        }
+
+        if (skillsRes.status === 'fulfilled' && skillsRes.value) {
+          const sData = skillsRes.value?.data || skillsRes.value
+          let rawList = []
+          if (Array.isArray(sData)) {
+            rawList = sData
+          } else if (Array.isArray(sData?.skills)) {
+            rawList = sData.skills
+          } else if (Array.isArray(sData?.data?.skills)) {
+            rawList = sData.data.skills
+          } else if (Array.isArray(sData?.data)) {
+            rawList = sData.data
+          }
+
+          const parsedSkills = rawList
+            .map((s) => (typeof s === 'object' && s !== null ? s.name || s.skill || s.title || '' : String(s || '')))
+            .map((s) => s.trim())
+            .filter(Boolean)
+
+          if (parsedSkills.length > 0) {
+            setResumeData((prev) => ({
+              ...prev,
+              skills: parsedSkills,
+            }))
+            setHasExistingSkills(true)
+          }
+        }
+
+        if (eduRes.status === 'fulfilled' && eduRes.value) {
+          const eData = eduRes.value?.data || eduRes.value
+          let rawEducations = []
+          if (Array.isArray(eData)) {
+            rawEducations = eData
+          } else if (Array.isArray(eData?.educations)) {
+            rawEducations = eData.educations
+          } else if (Array.isArray(eData?.data?.educations)) {
+            rawEducations = eData.data.educations
+          } else if (Array.isArray(eData?.data)) {
+            rawEducations = eData.data
+          }
+
+          if (rawEducations.length > 0) {
+            const mappedEducations = rawEducations.map((edu) => ({
+              degree: edu.degree || '',
+              school_name: edu.school_name || edu.school || edu.institution || '',
+              school: edu.school_name || edu.school || edu.institution || '',
+              field_of_study: edu.field_of_study || edu.field || '',
+              field: edu.field_of_study || edu.field || '',
+              start_date: edu.start_date != null ? String(edu.start_date) : '',
+              startDate: edu.start_date != null ? String(edu.start_date) : '',
+              end_date: edu.end_date != null ? String(edu.end_date) : '',
+              endDate: edu.end_date != null ? String(edu.end_date) : '',
+              gpa: edu.gpa != null ? String(edu.gpa) : '',
+              url: edu.url || '',
+              is_current: Boolean(edu.is_current),
+            }))
+
+            const hasValidEdu = mappedEducations.some((e) => e.degree.trim() || e.school_name.trim())
+            if (hasValidEdu) {
+              setResumeData((prev) => ({
+                ...prev,
+                education: mappedEducations,
+              }))
+              setHasExistingEducation(true)
+            }
+          }
+        }
+
+        if (expRes.status === 'fulfilled' && expRes.value) {
+          const expData = expRes.value?.data || expRes.value
+          let rawExperiences = []
+          if (Array.isArray(expData)) {
+            rawExperiences = expData
+          } else if (Array.isArray(expData?.work_experience)) {
+            rawExperiences = expData.work_experience
+          } else if (Array.isArray(expData?.data?.work_experience)) {
+            rawExperiences = expData.data.work_experience
+          } else if (Array.isArray(expData?.data)) {
+            rawExperiences = expData.data
+          }
+
+          if (rawExperiences.length > 0) {
+            const mappedExperiences = rawExperiences.map((exp, idx) => ({
+              job_title: exp.job_title || exp.title || '',
+              title: exp.job_title || exp.title || '',
+              company_name: exp.company_name || exp.company || '',
+              company: exp.company_name || exp.company || '',
+              city: exp.city || '',
+              state: exp.state || '',
+              country: exp.country || '',
+              location_type: exp.location_type || 'Hybrid',
+              employment_type: exp.employment_type || exp.type || 'Full-time',
+              type: exp.employment_type || exp.type || 'Full-time',
+              is_currently_work_here: Boolean(exp.is_currently_work_here ?? exp.isCurrent),
+              isCurrent: Boolean(exp.is_currently_work_here ?? exp.isCurrent),
+              start_date: exp.start_date || exp.startDate || '',
+              startDate: exp.start_date || exp.startDate || '',
+              end_date: (exp.is_currently_work_here ?? exp.isCurrent) ? '' : exp.end_date || exp.endDate || '',
+              endDate: (exp.is_currently_work_here ?? exp.isCurrent) ? 'Present' : exp.end_date || exp.endDate || '',
+              responsibilities: exp.responsibilities || (exp.bullets && exp.bullets[0]) || '',
+              achievements: exp.achievements || (exp.bullets && exp.bullets[1]) || '',
+              bullets: [exp.responsibilities, exp.achievements].filter(Boolean),
+              order: exp.order || idx + 1,
+            }))
+
+            const hasValidExp = mappedExperiences.some((e) => e.job_title.trim() || e.company_name.trim())
+            if (hasValidExp) {
+              setResumeData((prev) => ({
+                ...prev,
+                experience: mappedExperiences,
+                noExperience: false,
+              }))
+              setHasExistingExperience(true)
+            }
+          }
+        }
+
+        if (projRes.status === 'fulfilled' && projRes.value) {
+          const pData = projRes.value?.data || projRes.value
+          let rawProjects = []
+          if (Array.isArray(pData)) {
+            rawProjects = pData
+          } else if (Array.isArray(pData?.projects)) {
+            rawProjects = pData.projects
+          } else if (Array.isArray(pData?.data?.projects)) {
+            rawProjects = pData.data.projects
+          } else if (Array.isArray(pData?.data)) {
+            rawProjects = pData.data
+          }
+
+          if (rawProjects.length > 0) {
+            const mappedProjects = rawProjects.map((proj, idx) => ({
+              name: proj.name || '',
+              description: proj.description || '',
+              url: proj.url || proj.githubUrl || proj.liveUrl || '',
+              liveUrl: proj.url || proj.liveUrl || '',
+              githubUrl: proj.url || proj.githubUrl || '',
+              start_date: Number(proj.start_date) || 20230101,
+              end_date: Number(proj.end_date) || 20230830,
+              status: proj.status || 'Completed',
+              responsibilities: proj.responsibilities || '',
+              achievements: proj.achievements || '',
+              order: proj.order || idx + 1,
+            }))
+
+            const hasValidProj = mappedProjects.some((p) => p.name.trim())
+            if (hasValidProj) {
+              setResumeData((prev) => ({
+                ...prev,
+                projects: mappedProjects,
+                noProjects: false,
+              }))
+              setHasExistingProjects(true)
+            }
           }
         }
       } catch (err) {
@@ -507,11 +673,14 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
         skills: allSkills,
       }
 
-      const response = await resumeApi.saveSkills(payload)
+      const response = hasExistingSkills
+        ? await resumeApi.updateSkills(payload)
+        : await resumeApi.saveSkills(payload)
+      setHasExistingSkills(true)
       setSaveState(0)
       setApiFeedback({
         type: 'success',
-        message: response?.msg || 'Skills saved successfully!',
+        message: response?.msg || (hasExistingSkills ? 'Skills updated successfully!' : 'Skills saved successfully!'),
       })
       return true
     } catch (err) {
@@ -553,11 +722,14 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
         educations,
       }
 
-      const response = await resumeApi.saveEducationalInfo(payload)
+      const response = hasExistingEducation
+        ? await resumeApi.updateEducationalInfo(payload)
+        : await resumeApi.saveEducationalInfo(payload)
+      setHasExistingEducation(true)
       setSaveState(0)
       setApiFeedback({
         type: 'success',
-        message: response?.msg || 'Educational information saved successfully!',
+        message: response?.msg || (hasExistingEducation ? 'Educational information updated successfully!' : 'Educational information saved successfully!'),
       })
       return true
     } catch (err) {
@@ -609,11 +781,14 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
         work_experience: workExperience,
       }
 
-      const response = await resumeApi.saveWorkExperience(payload)
+      const response = hasExistingExperience
+        ? await resumeApi.updateWorkExperience(payload)
+        : await resumeApi.saveWorkExperience(payload)
+      setHasExistingExperience(true)
       setSaveState(0)
       setApiFeedback({
         type: 'success',
-        message: response?.msg || 'Work experience saved successfully!',
+        message: response?.msg || (hasExistingExperience ? 'Work experience updated successfully!' : 'Work experience saved successfully!'),
       })
       return true
     } catch (err) {
@@ -661,11 +836,14 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
         projects,
       }
 
-      const response = await resumeApi.saveProjectsInfo(payload)
+      const response = hasExistingProjects
+        ? await resumeApi.updateProjectsInfo(payload)
+        : await resumeApi.saveProjectsInfo(payload)
+      setHasExistingProjects(true)
       setSaveState(0)
       setApiFeedback({
         type: 'success',
-        message: response?.msg || 'Projects information saved successfully!',
+        message: response?.msg || (hasExistingProjects ? 'Projects updated successfully!' : 'Projects information saved successfully!'),
       })
       return true
     } catch (err) {
@@ -705,9 +883,6 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
     else if (currentStep === 5) saved = await saveStep5Experience()
     else if (currentStep === 6) saved = await saveStep6Projects()
 
-    if (saved && !completedSteps.includes(currentStep)) {
-      setCompletedSteps((prev) => [...prev, currentStep])
-    }
     return saved
   }
 
@@ -724,7 +899,10 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
       const meRes = await authApi.getMe()
       const user = meRes?.data || meRes
       if (user && typeof user.step_count !== 'undefined') {
-        const sc = typeof user.step_count === 'number' ? user.step_count : Number(user.step_count) || updatedStepCount
+        const sc = Math.max(
+          updatedStepCount,
+          typeof user.step_count === 'number' ? user.step_count : Number(user.step_count) || 0
+        )
         setStepCount(sc)
       }
     } catch (err) {

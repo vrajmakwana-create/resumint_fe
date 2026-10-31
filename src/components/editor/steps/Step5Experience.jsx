@@ -18,7 +18,7 @@ export default function Step5Experience({ data, onChange, errors = {} }) {
     endDate: '',
     responsibilities: '',
     achievements: '',
-    bullets: [''],
+    bullets: [],
     order: 1,
   }
 
@@ -81,7 +81,7 @@ export default function Step5Experience({ data, onChange, errors = {} }) {
         endDate: '',
         responsibilities: '',
         achievements: '',
-        bullets: [''],
+        bullets: [],
         order: items.length + 1,
       },
     ])
@@ -118,19 +118,9 @@ export default function Step5Experience({ data, onChange, errors = {} }) {
             <span className="font-body-medium text-[12.5px]">I have no work experience (Fresher)</span>
           </label>
 
-          {!isFresher && (
-            <button
-              onClick={handleAddExperience}
-              className="h-9 px-3.5 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-body-semibold text-[12.5px] flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
-              type="button"
-            >
-              <span className="material-symbols-outlined text-[17px]">add</span>
-              <span>+ Add Experience</span>
-            </button>
-          )}
         </div>
       </div>
-      
+
 
       {/* Fresher Empty State Banner */}
       {isFresher ? (
@@ -368,9 +358,22 @@ export default function Step5Experience({ data, onChange, errors = {} }) {
                     </div>
                   </div>
                 </div>
+
+
               </div>
             )
           })}
+
+          {!isFresher && (
+            <button
+              onClick={handleAddExperience}
+              className="h-9 px-3.5 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-body-semibold text-[12.5px] flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              type="button"
+            >
+              <span className="material-symbols-outlined text-[17px]">add</span>
+              <span>Add Experience</span>
+            </button>
+          )}
         </div>
       )}
     </div>

@@ -73,9 +73,16 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
     const user = getCurrentUser()
     const sc = user?.step_count ?? localStorage.getItem('resumint_step_count')
     const calculatedAllowed = Math.min(6, (Number(sc) || 0) + 1)
-    const initial = initialStep || 1
-    return Math.min(initial, calculatedAllowed)
+    const storedStep = Number(localStorage.getItem('resumint_current_editor_step'))
+    const preferred = (storedStep && storedStep >= 1 && storedStep <= 6) ? storedStep : (initialStep || 1)
+    return Math.min(preferred, calculatedAllowed)
   })
+
+  useEffect(() => {
+    if (currentStep >= 1 && currentStep <= 6) {
+      localStorage.setItem('resumint_current_editor_step', String(currentStep))
+    }
+  }, [currentStep])
 
   const completedSteps = Array.from({ length: Math.min(6, stepCount || 0) }, (_, i) => i + 1)
 
@@ -132,6 +139,13 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
 
   const [resumeData, setResumeData] = useState(() => {
     try {
+      const draft = localStorage.getItem('resumint_resume_draft')
+      if (draft) {
+        const parsedDraft = JSON.parse(draft)
+        if (parsedDraft && typeof parsedDraft === 'object') {
+          return parsedDraft
+        }
+      }
       const stored = localStorage.getItem('resumint_extracted_resume')
       if (stored) {
         const parsed = JSON.parse(stored)
@@ -140,7 +154,7 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
         }
       }
     } catch (err) {
-      console.warn('Failed to parse stored extracted resume:', err)
+      console.warn('Failed to parse stored resume data:', err)
     }
 
     return {
@@ -207,6 +221,15 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
       return newErr
     })
   }
+
+  // Keep local draft in sync with latest resumeData so page refresh never loses in-progress form edits
+  useEffect(() => {
+    try {
+      localStorage.setItem('resumint_resume_draft', JSON.stringify(resumeData))
+    } catch (err) {
+      console.warn('Failed to save draft to localStorage:', err)
+    }
+  }, [resumeData])
 
   // Fetch already filled data from backend on mount and arrange into form state
   useEffect(() => {

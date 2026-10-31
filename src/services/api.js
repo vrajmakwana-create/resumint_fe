@@ -95,6 +95,8 @@ export const clearSession = () => {
   localStorage.removeItem('resumint_user')
   localStorage.removeItem('user')
   localStorage.removeItem('resumint_is_verified')
+  localStorage.removeItem('resumint_resume_draft')
+  localStorage.removeItem('resumint_current_editor_step')
   deleteCookie('resumint_token')
   deleteCookie('access_token')
   deleteCookie('resumint_refresh_token')
@@ -109,18 +111,8 @@ export const getDeviceId = () => {
   return devId
 }
 
-// Refresh Token Management Queue (prevents multiple concurrent refresh calls)
-let isRefreshing = false
-let refreshSubscribers = []
-
-function subscribeTokenRefresh(cb) {
-  refreshSubscribers.push(cb)
-}
-
-function onRefreshed(token) {
-  refreshSubscribers.forEach((cb) => cb(token))
-  refreshSubscribers = []
-}
+// Singleton Promise for in-flight refresh token request (prevents duplicate refresh calls)
+let refreshTokenPromise = null
 
 /**
  * Refresh access token using current refresh_token
@@ -166,14 +158,30 @@ export async function refreshAccessToken(explicitRefreshToken) {
   const newAccessToken = resData?.access_token || data?.access_token
   const newRefreshToken = resData?.refresh_token || data?.refresh_token
 
-  if (newAccessToken) {
-    setToken(newAccessToken)
+  if (!newAccessToken) {
+    clearSession()
+    throw new Error('No new access token returned by refresh endpoint')
   }
+
+  setToken(newAccessToken)
   if (newRefreshToken) {
     setRefreshToken(newRefreshToken)
   }
 
   return newAccessToken
+}
+
+/**
+ * Thread-safe coordinator: ensures only ONE refresh request is in-flight,
+ * and all concurrent 401 requests await the same promise.
+ */
+function getOrRefreshAccessToken() {
+  if (!refreshTokenPromise) {
+    refreshTokenPromise = refreshAccessToken().finally(() => {
+      refreshTokenPromise = null
+    })
+  }
+  return refreshTokenPromise
 }
 
 /**
@@ -227,38 +235,27 @@ export async function apiClient(endpoint, options = {}) {
       !endpoint.includes('/users/login') &&
       !endpoint.includes('/users/refresh-token')
     ) {
-      if (!isRefreshing) {
-        isRefreshing = true
-        try {
-          const newAccessToken = await refreshAccessToken()
-          isRefreshing = false
-          onRefreshed(newAccessToken)
-        } catch (refreshErr) {
-          isRefreshing = false
-          refreshSubscribers = []
-          clearSession()
-          if (typeof window !== 'undefined') {
-            window.dispatchEvent(new Event('auth:unauthorized'))
-          }
-          throw refreshErr
-        }
-      }
+      try {
+        const newAccessToken = await getOrRefreshAccessToken()
 
-      // Retry request once new token is ready
-      return new Promise((resolve, reject) => {
-        subscribeTokenRefresh((newToken) => {
-          resolve(
-            apiClient(endpoint, {
-              ...options,
-              _retry: true,
-              headers: {
-                ...headers,
-                Authorization: `Bearer ${newToken}`,
-              },
-            })
-          )
+        // Clone headers and overwrite Authorization with the new access token
+        const retryHeaders = { ...headers }
+        delete retryHeaders.authorization
+        delete retryHeaders.Authorization
+        retryHeaders['Authorization'] = `Bearer ${newAccessToken}`
+
+        return await apiClient(endpoint, {
+          ...options,
+          _retry: true,
+          headers: retryHeaders,
         })
-      })
+      } catch (refreshErr) {
+        clearSession()
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('auth:unauthorized'))
+        }
+        throw refreshErr
+      }
     }
 
     if (!response.ok) {

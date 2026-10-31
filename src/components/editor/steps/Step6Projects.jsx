@@ -80,16 +80,7 @@ export default function Step6Projects({ data, onChange, errors = {} }) {
             <span className="font-body-medium text-[12.5px]">No projects to highlight right now</span>
           </label>
 
-          {!noProjects && (
-            <button
-              onClick={handleAddProject}
-              className="inline-flex items-center gap-1.5 h-9 px-3.5 bg-[#2563EB] text-white rounded-lg text-[12.5px] font-body-semibold hover:bg-[#1D4ED8] transition-colors shadow-sm cursor-pointer"
-              type="button"
-            >
-              <span className="material-symbols-outlined text-[17px]">add</span>
-              <span>+ Add Project</span>
-            </button>
-          )}
+
         </div>
       </div>
 
@@ -242,9 +233,21 @@ export default function Step6Projects({ data, onChange, errors = {} }) {
                     </div>
                   </div>
                 </div>
+
+
               </div>
             )
           })}
+          {!noProjects && (
+            <button
+              onClick={handleAddProject}
+              className="inline-flex items-center gap-1.5 h-9 px-3.5 bg-[#2563EB] text-white rounded-lg text-[12.5px] font-body-semibold hover:bg-[#1D4ED8] transition-colors shadow-sm cursor-pointer"
+              type="button"
+            >
+              <span className="material-symbols-outlined text-[17px]">add</span>
+              <span>Add Project</span>
+            </button>
+          )}
         </div>
       )}
     </div>

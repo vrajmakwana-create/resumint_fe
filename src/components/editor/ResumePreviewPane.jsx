@@ -1,11 +1,20 @@
 export default function ResumePreviewPane({ resumeData, currentStep }) {
   const {
-    fullName = 'Alex Morgan',
-    profTitle = 'Staff Product Designer',
-    email = 'alex.morgan@design.io',
-    phone = '+1 (555) 234-5678',
-    location = 'San Francisco, CA',
-    portfolio = 'portfolio.alexmorgan.design',
+    fullName = '',
+    first_name = '',
+    last_name = '',
+    profTitle = '',
+    job_title = '',
+    email = '',
+    phone = '',
+    location = '',
+    city = '',
+    state = '',
+    country = '',
+    portfolio = '',
+    website = '',
+    linkedin = '',
+    github = '',
     summary = 'High-impact design leader with 10+ years architecting enterprise systems, multi-device experiences, and design systems for global SaaS platforms. Expert in 0-to-1 product strategy, generative UX workflows, and data-driven engagement with proven track record scaling design organizations.',
     tools = ['Figma', 'Design Systems', 'Enterprise SaaS', 'Prototyping', 'Generative UX', 'Team Mentorship'],
     skills = [],
@@ -36,7 +45,35 @@ export default function ResumePreviewPane({ resumeData, currentStep }) {
         endDate: '2019',
       },
     ],
-  } = resumeData
+    projects = [],
+  } = resumeData || {}
+
+  const displayFullName = fullName || `${first_name} ${last_name}`.trim() || 'Alex Morgan'
+  const displayLocation = location || [city, state, country].filter(Boolean).join(', ') || 'San Francisco, CA'
+  const displayEmail = email || 'alex.morgan@design.io'
+  const displayPhone = phone || '+1 (555) 234-5678'
+  const displayWebsite = website || portfolio || ''
+  const displaySkills = skills && skills.length > 0 ? skills : tools
+  const displayExperiences = experience && experience.length > 0 ? experience : []
+  const displayEducation = education && education.length > 0 ? education : []
+  const displayProjects = projects && projects.length > 0 ? projects : []
+
+  // Dynamic professional title: explicit title, or current/latest role title from experience
+  const latestRole = displayExperiences.length > 0 ? (displayExperiences[0].job_title || displayExperiences[0].title || '') : ''
+  const displayTitle = profTitle || job_title || latestRole || ''
+
+  // Structured contact info and links without trailing separators
+  const contactItems = [
+    displayLocation && { val: displayLocation, breakAll: false },
+    displayEmail && { val: displayEmail, breakAll: true },
+    displayPhone && { val: displayPhone, breakAll: false },
+  ].filter(Boolean)
+
+  const linkItems = [
+    displayWebsite && { val: displayWebsite },
+    linkedin && { val: linkedin },
+    github && { val: github },
+  ].filter(Boolean)
 
   return (
     <aside className="w-[380px] bg-white border-l border-[#DCE5F0] flex flex-col shrink-0 select-none shadow-sm h-full">
@@ -77,22 +114,35 @@ export default function ResumePreviewPane({ resumeData, currentStep }) {
               currentStep === 1 ? 'p-1 bg-[#EFF6FF]/40 rounded' : ''
             }`}
           >
-            <h2 className="text-[17px] font-bold text-[#102544] tracking-tight leading-tight">
-              {fullName || 'Alex Morgan'}
+            <h2 className="text-[17px] font-bold text-[#102544] tracking-tight leading-tight break-words">
+              {displayFullName}
             </h2>
-            <p className="text-[11px] font-medium text-[#2563EB] mt-0.5">
-              {profTitle || 'Staff Product Designer'}
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[#64748B] text-[9.5px] mt-2">
-              <span>{location || 'San Francisco, CA'}</span>
-              <span>•</span>
-              <span>{email || 'alex.morgan@design.io'}</span>
-              <span>•</span>
-              <span>{phone || '+1 (555) 234-5678'}</span>
-              <span>•</span>
-              <span className="text-[#2563EB] truncate max-w-[120px]">
-                {portfolio || 'portfolio.alexmorgan.design'}
-              </span>
+            {displayTitle && (
+              <p className="text-[11px] font-medium text-[#2563EB] mt-0.5 break-words">
+                {displayTitle}
+              </p>
+            )}
+            <div className="text-[#64748B] text-[9.5px] mt-2 space-y-1">
+              {contactItems.length > 0 && (
+                <div className="flex flex-wrap items-center justify-center gap-y-1">
+                  {contactItems.map((item, idx) => (
+                    <span key={idx} className="inline-flex items-center">
+                      {idx > 0 && <span className="mx-1.5 text-[#94A3B8]">•</span>}
+                      <span className={item.breakAll ? 'break-all' : ''}>{item.val}</span>
+                    </span>
+                  ))}
+                </div>
+              )}
+              {linkItems.length > 0 && (
+                <div className="flex flex-wrap items-center justify-center gap-y-1">
+                  {linkItems.map((item, idx) => (
+                    <span key={idx} className="inline-flex items-center">
+                      {idx > 0 && <span className="mx-1.5 text-[#94A3B8]">•</span>}
+                      <span className="text-[#2563EB] break-all">{item.val}</span>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -114,118 +164,218 @@ export default function ResumePreviewPane({ resumeData, currentStep }) {
                 </span>
               )}
             </div>
-            <p className="text-[#475569] leading-relaxed text-[9px] pt-0.5">
+            <p className="text-[#475569] leading-relaxed text-[9px] pt-0.5 break-words whitespace-pre-line">
               {summary}
             </p>
           </div>
 
           {/* Section: Experience Mockup */}
-          <div
-            className={`space-y-2 p-2 rounded-lg transition-all ${
-              currentStep === 5
-                ? 'bg-[#EFF6FF]/40 border border-[#2563EB]/30'
-                : 'hover:bg-[#F8FAFC]'
-            }`}
-          >
-            <div className="flex items-center justify-between border-b border-[#DCE5F0] pb-0.5">
-              <div className="text-[10px] font-bold tracking-wider uppercase text-[#102544]">
-                Experience
-              </div>
-              {currentStep === 5 && (
-                <span className="text-[8px] font-semibold text-[#2563EB] uppercase tracking-wider">
-                  Active Editing
-                </span>
-              )}
-            </div>
-            {experience.slice(0, 2).map((exp, idx) => (
-              <div key={idx} className="space-y-0.5">
-                <div className="flex justify-between items-baseline font-semibold text-[#14243B] text-[9.5px]">
-                  <span>
-                    {exp.title} • {exp.company}
-                  </span>
-                  <span className="text-[#64748B] font-normal text-[8.5px]">
-                    {exp.startDate} — {exp.endDate}
-                  </span>
+          {displayExperiences.length > 0 && (
+            <div
+              className={`space-y-2 p-2 rounded-lg transition-all ${
+                currentStep === 5
+                  ? 'bg-[#EFF6FF]/40 border border-[#2563EB]/30'
+                  : 'hover:bg-[#F8FAFC]'
+              }`}
+            >
+              <div className="flex items-center justify-between border-b border-[#DCE5F0] pb-0.5">
+                <div className="text-[10px] font-bold tracking-wider uppercase text-[#102544]">
+                  Experience
                 </div>
-                <ul className="list-disc list-inside text-[#475569] text-[8.5px] space-y-0.5 leading-snug">
-                  {(exp.bullets || []).slice(0, 2).map((b, bI) => (
-                    <li key={bI} className="truncate">
-                      {b}
-                    </li>
-                  ))}
-                </ul>
+                {currentStep === 5 && (
+                  <span className="text-[8px] font-semibold text-[#2563EB] uppercase tracking-wider">
+                    Active Editing
+                  </span>
+                )}
               </div>
-            ))}
-          </div>
+              {displayExperiences.map((exp, idx) => {
+                const jobTitle = exp.job_title || exp.title || ''
+                const companyName = exp.company_name || exp.company || ''
+                const startDate = exp.start_date || exp.startDate || ''
+                const isCurrent = exp.is_currently_work_here ?? exp.isCurrent
+                const endDate = isCurrent ? 'Present' : exp.end_date || exp.endDate || ''
 
-          {/* Section: Key Competencies Chips */}
-          <div
-            className={`space-y-1.5 p-2 rounded-lg transition-all ${
-              currentStep === 3
-                ? 'bg-[#EFF6FF]/40 border border-[#2563EB]/30'
-                : 'hover:bg-[#F8FAFC]'
-            }`}
-          >
-            <div className="flex items-center justify-between border-b border-[#DCE5F0] pb-0.5">
-              <div className="text-[10px] font-bold tracking-wider uppercase text-[#2563EB]">
-                Key Competencies
-              </div>
-              {currentStep === 3 && (
-                <span className="text-[8px] font-semibold text-[#2563EB] uppercase tracking-wider">
-                  Active Editing
-                </span>
-              )}
-            </div>
-            <div className="flex flex-wrap gap-1.5 pt-0.5">
-              {(skills.length > 0 ? skills : tools).slice(0, 10).map((skill, sIdx) => {
-                const label =
-                  typeof skill === 'object' && skill !== null
-                    ? skill.name || skill.skill || skill.title || ''
-                    : String(skill || '')
-                if (!label) return null
+                // Extract all valid, non-empty bullet points
+                const bulletList = []
+                if (Array.isArray(exp.bullets)) {
+                  exp.bullets.forEach((b) => {
+                    if (typeof b === 'string' && b.trim()) bulletList.push(b.trim())
+                  })
+                }
+                if (bulletList.length === 0) {
+                  if (typeof exp.responsibilities === 'string' && exp.responsibilities.trim()) {
+                    bulletList.push(exp.responsibilities.trim())
+                  }
+                  if (typeof exp.achievements === 'string' && exp.achievements.trim()) {
+                    bulletList.push(exp.achievements.trim())
+                  }
+                }
+
+                if (!jobTitle && !companyName) return null
 
                 return (
-                  <span
-                    key={sIdx}
-                    className="skill-chip inline-block bg-white text-black border border-[#CBD5E1] px-2 py-0.5 rounded text-[8.5px] font-medium shadow-2xs"
-                    style={{ backgroundColor: '#ffffff', color: '#000000', borderColor: '#CBD5E1' }}
-                  >
-                    {label}
-                  </span>
+                  <div key={idx} className="space-y-1">
+                    <div className="flex justify-between items-baseline font-semibold text-[#14243B] text-[9.5px]">
+                      <span className="pr-2 break-words leading-snug">
+                        {jobTitle}{jobTitle && companyName ? ' • ' : ''}{companyName}
+                      </span>
+                      <span className="text-[#64748B] font-normal text-[8.5px] shrink-0">
+                        {startDate}{startDate && endDate ? ' — ' : ''}{endDate}
+                      </span>
+                    </div>
+                    {bulletList.length > 0 && (
+                      <ul className="list-disc list-inside text-[#475569] text-[8.5px] space-y-1 leading-relaxed">
+                        {bulletList.map((b, bI) => (
+                          <li key={bI} className="break-words whitespace-normal">
+                            {b}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 )
               })}
             </div>
-          </div>
+          )}
+
+          {/* Section: Key Competencies Chips */}
+          {displaySkills.length > 0 && (
+            <div
+              className={`space-y-1.5 p-2 rounded-lg transition-all ${
+                currentStep === 3
+                  ? 'bg-[#EFF6FF]/40 border border-[#2563EB]/30'
+                  : 'hover:bg-[#F8FAFC]'
+              }`}
+            >
+              <div className="flex items-center justify-between border-b border-[#DCE5F0] pb-0.5">
+                <div className="text-[10px] font-bold tracking-wider uppercase text-[#2563EB]">
+                  Key Competencies
+                </div>
+                {currentStep === 3 && (
+                  <span className="text-[8px] font-semibold text-[#2563EB] uppercase tracking-wider">
+                    Active Editing
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-1.5 pt-0.5">
+                {displaySkills.map((skill, sIdx) => {
+                  const label =
+                    typeof skill === 'object' && skill !== null
+                      ? skill.name || skill.skill || skill.title || ''
+                      : String(skill || '')
+                  if (!label) return null
+
+                  return (
+                    <span
+                      key={sIdx}
+                      className="skill-chip inline-block bg-white text-black border border-[#CBD5E1] px-2 py-0.5 rounded text-[8.5px] font-medium shadow-2xs break-words"
+                      style={{ backgroundColor: '#ffffff', color: '#000000', borderColor: '#CBD5E1' }}
+                    >
+                      {label}
+                    </span>
+                  )
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Section: Education Mockup */}
-          <div
-            className={`space-y-1 p-2 rounded-lg transition-all ${
-              currentStep === 4
-                ? 'bg-[#EFF6FF]/40 border border-[#2563EB]/30'
-                : 'hover:bg-[#F8FAFC]'
-            }`}
-          >
-            <div className="flex items-center justify-between border-b border-[#DCE5F0] pb-0.5">
-              <div className="text-[10px] font-bold tracking-wider uppercase text-[#102544]">
-                Education
+          {displayEducation.length > 0 && (
+            <div
+              className={`space-y-1.5 p-2 rounded-lg transition-all ${
+                currentStep === 4
+                  ? 'bg-[#EFF6FF]/40 border border-[#2563EB]/30'
+                  : 'hover:bg-[#F8FAFC]'
+              }`}
+            >
+              <div className="flex items-center justify-between border-b border-[#DCE5F0] pb-0.5">
+                <div className="text-[10px] font-bold tracking-wider uppercase text-[#102544]">
+                  Education
+                </div>
+                {currentStep === 4 && (
+                  <span className="text-[8px] font-semibold text-[#2563EB] uppercase tracking-wider">
+                    Active Editing
+                  </span>
+                )}
               </div>
-              {currentStep === 4 && (
-                <span className="text-[8px] font-semibold text-[#2563EB] uppercase tracking-wider">
-                  Active Editing
-                </span>
-              )}
+              {displayEducation.map((edu, idx) => {
+                const degree = edu.degree || ''
+                const school = edu.school_name || edu.school || edu.institution || ''
+                const startDate = edu.start_date || edu.startDate || ''
+                const endDate = edu.end_date || edu.endDate || ''
+                const gpa = edu.gpa ? ` • GPA: ${edu.gpa}` : ''
+                const field = edu.field_of_study || edu.field ? ` (${edu.field_of_study || edu.field})` : ''
+
+                if (!degree && !school) return null
+
+                return (
+                  <div key={idx} className="space-y-0.5">
+                    <div className="flex justify-between items-baseline text-[9px]">
+                      <span className="font-semibold text-[#14243B] break-words pr-2 leading-snug">
+                        {degree}{field}{degree && school ? ' • ' : ''}{school}{gpa}
+                      </span>
+                      <span className="text-[#64748B] text-[8.5px] shrink-0">
+                        {startDate}{startDate && endDate ? ' — ' : ''}{endDate}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
-            {education.slice(0, 1).map((edu, idx) => (
-              <div key={idx} className="flex justify-between items-baseline text-[9px]">
-                <span className="font-semibold text-[#14243B]">
-                  {edu.degree} • {edu.school}
-                </span>
-                <span className="text-[#64748B] text-[8.5px]">
-                  {edu.startDate} — {edu.endDate}
-                </span>
+          )}
+
+          {/* Section: Projects Mockup */}
+          {displayProjects.length > 0 && (
+            <div
+              className={`space-y-1.5 p-2 rounded-lg transition-all ${
+                currentStep === 6
+                  ? 'bg-[#EFF6FF]/40 border border-[#2563EB]/30'
+                  : 'hover:bg-[#F8FAFC]'
+              }`}
+            >
+              <div className="flex items-center justify-between border-b border-[#DCE5F0] pb-0.5">
+                <div className="text-[10px] font-bold tracking-wider uppercase text-[#102544]">
+                  Featured Projects
+                </div>
+                {currentStep === 6 && (
+                  <span className="text-[8px] font-semibold text-[#2563EB] uppercase tracking-wider">
+                    Active Editing
+                  </span>
+                )}
               </div>
-            ))}
-          </div>
+              {displayProjects.map((proj, pIdx) => {
+                const name = proj.name || ''
+                const desc = proj.description || ''
+                const url = proj.url || proj.liveUrl || proj.githubUrl || ''
+                if (!name) return null
+
+                return (
+                  <div key={pIdx} className="space-y-0.5">
+                    <div className="flex justify-between items-baseline font-semibold text-[#14243B] text-[9.5px]">
+                      <span className="pr-2 break-words leading-snug">
+                        {name}
+                        {url && (
+                          <span className="font-normal text-[#2563EB] text-[8.5px] ml-1 break-all">
+                            ({url})
+                          </span>
+                        )}
+                      </span>
+                      {proj.status && (
+                        <span className="text-[#64748B] font-normal text-[8.5px] shrink-0">
+                          {proj.status}
+                        </span>
+                      )}
+                    </div>
+                    {desc && (
+                      <p className="text-[#475569] text-[8.5px] leading-relaxed break-words whitespace-normal">
+                        {desc}
+                      </p>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
 
         {/* Floating AI Recommendation Chip */}

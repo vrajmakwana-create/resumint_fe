@@ -8,6 +8,7 @@ import Step6Projects from './steps/Step6Projects'
 import ResumePreviewPane from './ResumePreviewPane'
 import ThemeToggle from '../common/ThemeToggle'
 import { resumeApi, authApi, getCurrentUser, setCurrentUser } from '../../services/api'
+import { normalizeSkills, getTotalSkillsCount } from './skillsConfig'
 
 const stepsConfig = [
   {
@@ -143,14 +144,20 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
       if (draft) {
         const parsedDraft = JSON.parse(draft)
         if (parsedDraft && typeof parsedDraft === 'object') {
-          return parsedDraft
+          return {
+            ...parsedDraft,
+            skills: normalizeSkills(parsedDraft.skills),
+          }
         }
       }
       const stored = localStorage.getItem('resumint_extracted_resume')
       if (stored) {
         const parsed = JSON.parse(stored)
         if (parsed && typeof parsed === 'object') {
-          return parsed
+          return {
+            ...parsed,
+            skills: normalizeSkills(parsed.skills),
+          }
         }
       }
     } catch (err) {
@@ -175,7 +182,7 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
       github: '',
       location: '',
       summary: '',
-      skills: [],
+      skills: normalizeSkills(null),
       tools: [],
       technical: [],
       leadership: [],
@@ -291,26 +298,14 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
 
         if (skillsRes.status === 'fulfilled' && skillsRes.value) {
           const sData = skillsRes.value?.data || skillsRes.value
-          let rawList = []
-          if (Array.isArray(sData)) {
-            rawList = sData
-          } else if (Array.isArray(sData?.skills)) {
-            rawList = sData.skills
-          } else if (Array.isArray(sData?.data?.skills)) {
-            rawList = sData.data.skills
-          } else if (Array.isArray(sData?.data)) {
-            rawList = sData.data
-          }
+          const rawSkills = sData?.skills || sData?.data?.skills || sData?.data || sData
+          const normalized = normalizeSkills(rawSkills)
+          const totalCount = getTotalSkillsCount(normalized)
 
-          const parsedSkills = rawList
-            .map((s) => (typeof s === 'object' && s !== null ? s.name || s.skill || s.title || '' : String(s || '')))
-            .map((s) => s.trim())
-            .filter(Boolean)
-
-          if (parsedSkills.length > 0) {
+          if (totalCount > 0) {
             setResumeData((prev) => ({
               ...prev,
-              skills: parsedSkills,
+              skills: normalized,
             }))
             setHasExistingSkills(true)
           }
@@ -502,16 +497,10 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
         newErrors.summary = 'Professional summary should be at least 20 characters long.'
       }
     } else if (stepNumber === 3) {
-      const allSkills = Array.from(
-        new Set([
-          ...(resumeData.skills || []),
-          ...(resumeData.tools || []),
-          ...(resumeData.technical || []),
-          ...(resumeData.leadership || []),
-        ])
-      ).filter(Boolean)
+      const skillsObj = normalizeSkills(resumeData.skills)
+      const totalSkills = getTotalSkillsCount(skillsObj)
 
-      if (allSkills.length === 0) {
+      if (totalSkills === 0) {
         newErrors.skills = 'Please add at least one skill or core competency.'
       }
     } else if (stepNumber === 4) {
@@ -675,16 +664,10 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
   }
 
   const saveStep3Skills = async () => {
-    const allSkills = Array.from(
-      new Set([
-        ...(resumeData.skills || []),
-        ...(resumeData.tools || []),
-        ...(resumeData.technical || []),
-        ...(resumeData.leadership || []),
-      ])
-    ).filter(Boolean)
+    const normalized = normalizeSkills(resumeData.skills)
+    const totalSkills = getTotalSkillsCount(normalized)
 
-    if (allSkills.length === 0) {
+    if (totalSkills === 0) {
       return false
     }
 
@@ -693,7 +676,7 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
     setApiFeedback(null)
     try {
       const payload = {
-        skills: allSkills,
+        skills: normalized,
       }
 
       const response = hasExistingSkills

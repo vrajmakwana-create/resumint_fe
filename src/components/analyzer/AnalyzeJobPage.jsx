@@ -96,11 +96,10 @@ export default function AnalyzeJobPage({ onNavigate, onLogout, onAnalysisDone })
               <div className="border-b border-[#DCE5F0] flex gap-8">
                 <button
                   onClick={() => setInputTab('paste')}
-                  className={`flex items-center gap-2 pb-3.5 text-sm transition-colors focus:outline-none cursor-pointer ${
-                    inputTab === 'paste'
-                      ? 'font-body-semibold text-[#2563EB] border-b-2 border-[#2563EB]'
-                      : 'font-body-medium text-[#64748B] hover:text-[#14243B]'
-                  }`}
+                  className={`flex items-center gap-2 pb-3.5 text-sm transition-colors focus:outline-none cursor-pointer ${inputTab === 'paste'
+                    ? 'font-body-semibold text-[#2563EB] border-b-2 border-[#2563EB]'
+                    : 'font-body-medium text-[#64748B] hover:text-[#14243B]'
+                    }`}
                   type="button"
                 >
                   <span className="material-symbols-outlined text-[18px]">content_paste</span>
@@ -108,11 +107,10 @@ export default function AnalyzeJobPage({ onNavigate, onLogout, onAnalysisDone })
                 </button>
                 <button
                   onClick={() => setInputTab('upload')}
-                  className={`flex items-center gap-2 pb-3.5 text-sm transition-colors focus:outline-none cursor-pointer ${
-                    inputTab === 'upload'
-                      ? 'font-body-semibold text-[#2563EB] border-b-2 border-[#2563EB]'
-                      : 'font-body-medium text-[#64748B] hover:text-[#14243B]'
-                  }`}
+                  className={`flex items-center gap-2 pb-3.5 text-sm transition-colors focus:outline-none cursor-pointer ${inputTab === 'upload'
+                    ? 'font-body-semibold text-[#2563EB] border-b-2 border-[#2563EB]'
+                    : 'font-body-medium text-[#64748B] hover:text-[#14243B]'
+                    }`}
                   type="button"
                 >
                   <span className="material-symbols-outlined text-[18px]">upload_file</span>
@@ -153,34 +151,6 @@ export default function AnalyzeJobPage({ onNavigate, onLogout, onAnalysisDone })
                 </div>
               </div>
 
-              {/* Target Resume Selection */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="block font-label-form text-label-form text-[#14243B] font-medium">
-                    Target Resume to Audit Against
-                  </label>
-                  <button
-                    onClick={() => onNavigate('editor')}
-                    className="text-xs font-semibold text-[#2563EB] hover:underline cursor-pointer"
-                    type="button"
-                  >
-                    + Create New Version
-                  </button>
-                </div>
-                <select
-                  value={selectedResume}
-                  onChange={(e) => setSelectedResume(e.target.value)}
-                  className="w-full h-11 px-3.5 bg-white border border-[#DCE5F0] rounded-lg text-sm text-[#14243B] font-body-medium focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15 outline-none transition-all cursor-pointer"
-                >
-                  <option value="primary">
-                    Primary Resume
-                  </option>
-                  <option value="senior">
-                    Draft Resume
-                  </option>
-                </select>
-              </div>
-
               {/* Input Area */}
               {inputTab === 'paste' ? (
                 <div className="space-y-2">
@@ -218,27 +188,6 @@ export default function AnalyzeJobPage({ onNavigate, onLogout, onAnalysisDone })
                   </button>
                 </div>
               )}
-
-              {/* Analysis Features Toggles */}
-              <div className="p-4 bg-[#F8FAFC] rounded-xl border border-[#DCE5F0] space-y-2.5">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#64748B] block">
-                  Included in this Audit:
-                </span>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs font-medium text-[#14243B]">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" defaultChecked className="rounded text-[#2563EB]" />
-                    <span>Keyword Match Ratio</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" defaultChecked className="rounded text-[#2563EB]" />
-                    <span>Seniority Gap Analysis</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" defaultChecked className="rounded text-[#2563EB]" />
-                    <span>Interview Preparation Guide</span>
-                  </label>
-                </div>
-              </div>
 
               {/* Submit Button */}
               <div className="pt-2">

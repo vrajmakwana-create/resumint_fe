@@ -1,3 +1,5 @@
+import { normalizeSkills, getTotalSkillsCount } from './skillsConfig'
+
 export default function ResumePreviewPane({ resumeData, currentStep }) {
   const {
     fullName = '',
@@ -53,7 +55,9 @@ export default function ResumePreviewPane({ resumeData, currentStep }) {
   const displayEmail = email || 'alex.morgan@design.io'
   const displayPhone = phone || '+1 (555) 234-5678'
   const displayWebsite = website || portfolio || ''
-  const displaySkills = skills && skills.length > 0 ? skills : tools
+  const categorizedSkills = normalizeSkills(skills && (typeof skills === 'object' || Array.isArray(skills)) ? skills : tools)
+  const totalSkillsCount = getTotalSkillsCount(categorizedSkills)
+  const hasCategorizedSkills = totalSkillsCount > 0
   const displayExperiences = experience && experience.length > 0 ? experience : []
   const displayEducation = education && education.length > 0 ? education : []
   const displayProjects = projects && projects.length > 0 ? projects : []
@@ -238,8 +242,8 @@ export default function ResumePreviewPane({ resumeData, currentStep }) {
             </div>
           )}
 
-          {/* Section: Key Competencies Chips */}
-          {displaySkills.length > 0 && (
+          {/* Section: Key Competencies by Category */}
+          {hasCategorizedSkills && (
             <div
               className={`space-y-1.5 p-2 rounded-lg transition-all ${
                 currentStep === 3
@@ -257,22 +261,14 @@ export default function ResumePreviewPane({ resumeData, currentStep }) {
                   </span>
                 )}
               </div>
-              <div className="flex flex-wrap gap-1.5 pt-0.5">
-                {displaySkills.map((skill, sIdx) => {
-                  const label =
-                    typeof skill === 'object' && skill !== null
-                      ? skill.name || skill.skill || skill.title || ''
-                      : String(skill || '')
-                  if (!label) return null
-
+              <div className="space-y-1 pt-0.5">
+                {Object.entries(categorizedSkills).map(([cat, list]) => {
+                  if (!list || list.length === 0) return null
                   return (
-                    <span
-                      key={sIdx}
-                      className="skill-chip inline-block bg-white text-black border border-[#CBD5E1] px-2 py-0.5 rounded text-[8.5px] font-medium shadow-2xs break-words"
-                      style={{ backgroundColor: '#ffffff', color: '#000000', borderColor: '#CBD5E1' }}
-                    >
-                      {label}
-                    </span>
+                    <div key={cat} className="text-[8.5px] leading-snug break-words">
+                      <span className="font-semibold text-[#14243B]">{cat}: </span>
+                      <span className="text-[#475569]">{list.join(', ')}</span>
+                    </div>
                   )
                 })}
               </div>

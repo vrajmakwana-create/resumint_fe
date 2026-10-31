@@ -188,7 +188,7 @@ export default function AnalysisHistoryPage({ onNavigate, onLogout }) {
               type="button"
             >
               <span className="material-symbols-outlined text-lg">auto_awesome</span>
-              <span>+ New Job Analysis</span>
+              <span>New Job Analysis</span>
             </button>
           </div>
 
@@ -355,13 +355,12 @@ export default function AnalysisHistoryPage({ onNavigate, onLogout }) {
                           </td>
                           <td className="px-6 py-4">
                             <span
-                              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-bold text-xs ${
-                                score >= 80
+                              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-bold text-xs ${score >= 80
                                   ? 'bg-[#DCFCE7] text-[#15803D]'
                                   : score >= 65
-                                  ? 'bg-[#EFF6FF] text-[#2563EB]'
-                                  : 'bg-[#FEF2F2] text-[#DC2626]'
-                              }`}
+                                    ? 'bg-[#EFF6FF] text-[#2563EB]'
+                                    : 'bg-[#FEF2F2] text-[#DC2626]'
+                                }`}
                             >
                               <span>{score}%</span>
                             </span>
@@ -405,9 +404,8 @@ export default function AnalysisHistoryPage({ onNavigate, onLogout }) {
                                 type="button"
                               >
                                 <span
-                                  className={`material-symbols-outlined text-[18px] ${
-                                    deletingId === item.id ? 'animate-spin' : ''
-                                  }`}
+                                  className={`material-symbols-outlined text-[18px] ${deletingId === item.id ? 'animate-spin' : ''
+                                    }`}
                                 >
                                   {deletingId === item.id ? 'progress_activity' : 'delete'}
                                 </span>

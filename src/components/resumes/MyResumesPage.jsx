@@ -8,28 +8,7 @@ export default function MyResumesPage({ onNavigate, onLogout }) {
   const [searchQuery, setSearchQuery] = useState('')
 
   const [resumes, setResumes] = useState([
-    {
-      id: 1,
-      title: 'Senior Product Designer 2024',
-      badge: 'Primary Resume',
-      badgeType: 'primary',
-      score: 94,
-      targetRole: 'Staff / Senior Product Design',
-      updated: '2 hours ago',
-      skills: ['Figma', 'Design Systems', 'Enterprise SaaS', 'Generative UX', 'Information Architecture'],
-      completeness: '100% Complete',
-    },
-    {
-      id: 2,
-      title: 'Staff UX Architect — FinTech',
-      badge: 'Tailored for Stripe',
-      badgeType: 'tailored',
-      score: 88,
-      targetRole: 'FinTech Platform Systems',
-      updated: '2 days ago',
-      skills: ['Systems Architecture', 'Telemetry', 'Mixpanel', 'OKR Alignment', 'Team Mentorship'],
-      completeness: '95% Complete',
-    },
+
   ])
 
   const handleDuplicate = (resume) => {
@@ -66,11 +45,6 @@ export default function MyResumesPage({ onNavigate, onLogout }) {
           <section className="bg-white border-b border-[#DCE5F0] px-4 sm:px-6 lg:px-8 py-4 sm:py-5 shrink-0">
             <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-[#EFF6FF] text-[#2563EB] border border-[#2563EB]/20">
-                    RESUME MANAGEMENT • WORKSPACE ARCHIVE
-                  </span>
-                </div>
                 <h1 className="font-headline-page text-[28px] md:text-headline-page font-bold text-[#14243B] tracking-tight">
                   My Resumes
                 </h1>
@@ -128,18 +102,16 @@ export default function MyResumesPage({ onNavigate, onLogout }) {
                   <div className="flex items-center bg-[#F1F5F9] p-1 rounded-lg border border-[#DCE5F0]">
                     <button
                       onClick={() => setViewMode('grid')}
-                      className={`p-1.5 rounded flex items-center cursor-pointer ${
-                        viewMode === 'grid' ? 'bg-white shadow-xs text-[#2563EB]' : 'text-[#64748B]'
-                      }`}
+                      className={`p-1.5 rounded flex items-center cursor-pointer ${viewMode === 'grid' ? 'bg-white shadow-xs text-[#2563EB]' : 'text-[#64748B]'
+                        }`}
                       title="Grid View"
                     >
                       <span className="material-symbols-outlined text-[18px]">grid_view</span>
                     </button>
                     <button
                       onClick={() => setViewMode('list')}
-                      className={`p-1.5 rounded flex items-center cursor-pointer ${
-                        viewMode === 'list' ? 'bg-white shadow-xs text-[#2563EB]' : 'text-[#64748B]'
-                      }`}
+                      className={`p-1.5 rounded flex items-center cursor-pointer ${viewMode === 'list' ? 'bg-white shadow-xs text-[#2563EB]' : 'text-[#64748B]'
+                        }`}
                       title="List View"
                     >
                       <span className="material-symbols-outlined text-[18px]">view_list</span>
@@ -150,9 +122,8 @@ export default function MyResumesPage({ onNavigate, onLogout }) {
 
               {/* Grid Cards */}
               <div
-                className={`grid gap-6 ${
-                  viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'
-                }`}
+                className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'
+                  }`}
               >
                 {resumes
                   .filter((r) => r.title.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -166,11 +137,10 @@ export default function MyResumesPage({ onNavigate, onLogout }) {
                         <div className="flex items-start justify-between mb-4">
                           <div className="space-y-1">
                             <span
-                              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                                resume.badgeType === 'primary'
-                                  ? 'bg-[#EFF6FF] text-[#2563EB] border border-[#2563EB]/20'
-                                  : 'bg-[#DCFCE7] text-[#16A34A] border border-[#16A34A]/20'
-                              }`}
+                              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${resume.badgeType === 'primary'
+                                ? 'bg-[#EFF6FF] text-[#2563EB] border border-[#2563EB]/20'
+                                : 'bg-[#DCFCE7] text-[#16A34A] border border-[#16A34A]/20'
+                                }`}
                             >
                               <span className="material-symbols-outlined text-[13px]">verified</span>
                               {resume.badge}

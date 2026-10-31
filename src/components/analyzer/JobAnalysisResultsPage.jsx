@@ -224,9 +224,7 @@ export default function JobAnalysisResultsPage({ onNavigate, onLogout }) {
                     <span className="material-symbols-outlined text-[18px]">arrow_back</span>
                     <span>Back to Job Analyzer</span>
                   </button>
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-badge-label font-badge-label bg-[#EFF6FF] text-[#1D4ED8] border border-[#BFDBFE]">
-                    ATS Match Audit &amp; Interview Guide
-                  </span>
+
                 </div>
 
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pt-1">
@@ -235,43 +233,12 @@ export default function JobAnalysisResultsPage({ onNavigate, onLogout }) {
                       {data.job_title || 'Senior Cloud Infrastructure & Backend Architect'}{' '}
                       <span className="text-[#2563EB]">@ {data.company_name || 'Google'}</span>
                     </h1>
-                    <p className="text-sm text-[#64748B] mt-1 max-w-3xl leading-relaxed">
+                    <p className="text-sm text-[#64748B] mt-1  leading-relaxed">
                       {data.match_rationale}
                     </p>
                   </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex items-center gap-3 shrink-0">
-                    <button
-                      onClick={() => onNavigate('analyze-job')}
-                      className="h-[44px] px-4 bg-white border border-[#DCE5F0] hover:bg-[#F8FAFC] text-[#14243B] font-body-semibold rounded-lg flex items-center gap-2 transition-all shadow-sm cursor-pointer"
-                      type="button"
-                    >
-                      <span className="material-symbols-outlined text-[18px]">refresh</span>
-                      <span>Analyze Another Job</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (tailored.tailored_summary) {
-                          localStorage.setItem(
-                            'resumint_extracted_resume',
-                            JSON.stringify({
-                              summary: tailored.tailored_summary,
-                              skills: tailored.tailored_skills || [],
-                              tools: (tailored.tailored_skills || []).slice(0, 5),
-                              technical: (tailored.tailored_skills || []).slice(5),
-                            })
-                          )
-                        }
-                        onNavigate('editor')
-                      }}
-                      className="h-[44px] px-5 bg-[#2563EB] hover:bg-[#1D4ED8] active:bg-[#1E40AF] text-white font-body-semibold rounded-lg flex items-center gap-2 transition-all shadow-sm cursor-pointer"
-                      type="button"
-                    >
-                      <span className="material-symbols-outlined text-[18px]">edit</span>
-                      <span>Apply Tailored Resume to Editor</span>
-                    </button>
-                  </div>
+
                 </div>
               </div>
 
@@ -556,7 +523,7 @@ export default function JobAnalysisResultsPage({ onNavigate, onLogout }) {
                 {/* TAB 4: AI Tailored Resume */}
                 {activeTab === 'tailored' && (
                   <div className="space-y-5">
-                    <div className="p-4 bg-[#F3E8FF] border border-[#DDD6FE] rounded-xl text-[#6B21A8] flex items-start gap-3">
+                    {/* <div className="p-4 bg-[#F3E8FF] border border-[#DDD6FE] rounded-xl text-[#6B21A8] flex items-start gap-3">
                       <span className="material-symbols-outlined text-[20px] text-[#7C3AED] shrink-0 mt-0.5">
                         auto_awesome
                       </span>
@@ -566,7 +533,7 @@ export default function JobAnalysisResultsPage({ onNavigate, onLogout }) {
                           Use this tailored summary and optimized skill list to increase your response rate for this position.
                         </p>
                       </div>
-                    </div>
+                    </div> */}
 
                     {/* Tailored Summary Card */}
                     {tailored.tailored_summary && (
@@ -598,41 +565,6 @@ export default function JobAnalysisResultsPage({ onNavigate, onLogout }) {
                 )}
               </section>
 
-              {/* TAILORED GENERATOR BANNER */}
-              <div className="p-6 bg-gradient-to-r from-[#102544] to-[#1E3A5F] rounded-2xl text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-md">
-                <div className="space-y-1 text-center md:text-left">
-                  <span className="text-[11px] font-bold tracking-widest text-[#93C5FD] uppercase">
-                    1-Click Tailored Optimization
-                  </span>
-                  <h3 className="font-headline-card text-xl font-bold">
-                    Apply Tailored Summary &amp; Keywords to Your Resume
-                  </h3>
-                  <p className="text-xs text-slate-300 max-w-xl">
-                    Automatically pre-fill your editor with the tailored professional summary and keywords generated for {data.job_title}.
-                  </p>
-                </div>
-                <button
-                  onClick={() => {
-                    if (tailored.tailored_summary) {
-                      localStorage.setItem(
-                        'resumint_extracted_resume',
-                        JSON.stringify({
-                          summary: tailored.tailored_summary,
-                          skills: tailored.tailored_skills || [],
-                          tools: (tailored.tailored_skills || []).slice(0, 5),
-                          technical: (tailored.tailored_skills || []).slice(5),
-                        })
-                      )
-                    }
-                    onNavigate('editor')
-                  }}
-                  className="h-11 px-6 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-body-semibold text-sm flex items-center gap-2 shadow-lg transition-all shrink-0 cursor-pointer"
-                  type="button"
-                >
-                  <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
-                  <span>Open in Resume Editor</span>
-                </button>
-              </div>
             </>
           )}
         </main>

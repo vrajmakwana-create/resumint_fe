@@ -19,18 +19,6 @@ export default function AppTopbar({ onNavigate, titleSearchPlaceholder = 'Search
         >
           <span className="material-symbols-outlined text-[22px]">menu</span>
         </button>
-
-        {/* Search Input */}
-        <div className="relative w-full">
-          <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-[#94A3B8]">
-            <span className="material-symbols-outlined text-[18px]">search</span>
-          </span>
-          <input
-            className="w-full h-10 pl-9 pr-3 sm:pr-4 rounded-lg border border-[#DCE5F0] bg-[#FFFFFF] text-[#14243B] placeholder-[#94A3B8] text-xs sm:text-sm focus:outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 transition-all font-body-default"
-            placeholder={titleSearchPlaceholder}
-            type="text"
-          />
-        </div>
       </div>
 
       {/* Top Right Actions */}

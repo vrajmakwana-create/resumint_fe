@@ -1,3 +1,5 @@
+import { toDateInputValue } from '../../../utils/dateUtils'
+
 export default function Step4Education({ data, onChange, errors = {} }) {
   const blankEducation = {
     degree: '',
@@ -19,7 +21,8 @@ export default function Step4Education({ data, onChange, errors = {} }) {
   const handleUpdate = (index, field, value) => {
     const updated = [...items]
     const item = { ...updated[index], [field]: value }
-    // Keep legacy alias fields in sync
+
+    // Sync aliases
     if (field === 'school_name') item.school = value
     if (field === 'school') item.school_name = value
     if (field === 'field_of_study') item.field = value
@@ -28,12 +31,18 @@ export default function Step4Education({ data, onChange, errors = {} }) {
     if (field === 'startDate') item.start_date = value
     if (field === 'end_date') item.endDate = value
     if (field === 'endDate') item.end_date = value
+    if (field === 'is_current') {
+      if (value) {
+        item.end_date = ''
+        item.endDate = 'Present'
+      }
+    }
 
     updated[index] = item
     onChange('education', updated)
   }
 
-  const handleAdd = () => {
+  const handleAddEducation = () => {
     onChange('education', [
       ...items,
       {
@@ -53,7 +62,7 @@ export default function Step4Education({ data, onChange, errors = {} }) {
     ])
   }
 
-  const handleDelete = (index) => {
+  const handleDeleteEducation = (index) => {
     onChange(
       'education',
       items.filter((_, i) => i !== index)
@@ -62,21 +71,19 @@ export default function Step4Education({ data, onChange, errors = {} }) {
 
   return (
     <div className="space-y-6">
-      {/* Top Header & Autofill */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-[#F1F5F9]">
         <div>
-          <span className="font-label-form text-[13px] text-[#14243B] font-semibold flex items-center gap-1.5">
-            <span>Academic Background &amp; Qualifications</span>
-            <span className="text-red-500 font-bold">*</span>
-          </span>
-          <p className="font-body-default text-[12px] text-[#64748B] mt-0.5">
-            Add higher education degrees, credentials, and institution details. Degree and Institution are required.
+          <h2 className="font-headline-section text-headline-section text-[#14243B] font-bold">
+            Education &amp; Qualifications
+          </h2>
+          <p className="font-body-default text-body-default text-[#64748B] mt-0.5">
+            Add your degrees, universities, academic achievements, or certifications.
           </p>
         </div>
       </div>
 
-      {/* Education Cards */}
-      <div className="space-y-5">
+      <div className="space-y-6">
         {items.map((edu, index) => {
           const degreeError = errors[`edu_${index}_degree`]
           const schoolError = errors[`edu_${index}_school`]
@@ -84,29 +91,31 @@ export default function Step4Education({ data, onChange, errors = {} }) {
           return (
             <div
               key={index}
-              className={`bg-white rounded-xl border shadow-sm transition-all ${degreeError || schoolError ? 'border-red-400 ring-1 ring-red-400/20' : 'border-[#DCE5F0] hover:border-[#2563EB]/40'
-                }`}
+              className="bg-white border border-[#DCE5F0] rounded-2xl overflow-hidden shadow-xs transition-all"
             >
-              {/* Card Header Bar */}
-              <div className="px-6 py-4 border-b border-[#DCE5F0] flex items-center justify-between bg-[#F8FAFC] rounded-t-xl">
-                <div className="flex items-center gap-2.5">
-                  <span className="material-symbols-outlined text-[#64748B] cursor-grab text-[20px]">
-                    drag_indicator
+              {/* Card Header */}
+              <div className="p-4 sm:p-5 bg-[#F8FAFC] border-b border-[#DCE5F0] flex items-center justify-between">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="w-6 h-6 rounded-full bg-[#EFF6FF] text-[#2563EB] flex items-center justify-center text-xs font-bold shrink-0">
+                    {index + 1}
                   </span>
-                  <h3 className="font-headline-card text-headline-card text-[#14243B] font-semibold">
-                    Education #{index + 1} • {edu.degree || 'Degree Entry'}
+                  <h3 className="font-bold text-[15px] text-[#14243B]">
+                    {edu.degree || `Qualification #${index + 1}`}
+                    {(edu.school_name || edu.school) && (
+                      <span className="font-normal text-[#64748B]"> • {edu.school_name || edu.school}</span>
+                    )}
                   </h3>
-                  {index === 0 && (
-                    <span className="px-2 py-0.5 rounded-full bg-[#EFF6FF] text-[#2563EB] font-badge-label text-[10px] font-semibold uppercase">
-                      Primary
+                  {edu.is_current && (
+                    <span className="px-2 py-0.5 bg-[#EFF6FF] text-[#2563EB] text-[10px] font-bold rounded uppercase border border-[#2563EB]/20">
+                      CURRENTLY ENROLLED
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                   {items.length > 1 && (
                     <button
-                      onClick={() => handleDelete(index)}
-                      className="text-[#64748B] hover:text-[#DC2626] p-1 rounded-md transition-colors cursor-pointer"
+                      onClick={() => handleDeleteEducation(index)}
+                      className="p-1.5 rounded-lg text-[#64748B] hover:text-[#DC2626] hover:bg-red-50 transition-colors cursor-pointer"
                       title="Delete entry"
                       type="button"
                     >
@@ -117,7 +126,7 @@ export default function Step4Education({ data, onChange, errors = {} }) {
               </div>
 
               {/* Form Fields */}
-              <div className="p-6 space-y-4">
+              <div className="p-5 sm:p-6 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block font-label-form text-[13px] font-medium text-[#14243B] mb-1.5">
@@ -125,8 +134,8 @@ export default function Step4Education({ data, onChange, errors = {} }) {
                     </label>
                     <input
                       className={`w-full h-11 px-3.5 rounded-lg border bg-white text-[#14243B] font-body-default text-body-default transition-all outline-none ${degreeError
-                        ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
-                        : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20'
+                          ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                          : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20'
                         }`}
                       placeholder="e.g. Bachelor of Science in Computer Science"
                       type="text"
@@ -146,8 +155,8 @@ export default function Step4Education({ data, onChange, errors = {} }) {
                     </label>
                     <input
                       className={`w-full h-11 px-3.5 rounded-lg border bg-white text-[#14243B] font-body-default text-body-default transition-all outline-none ${schoolError
-                        ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
-                        : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20'
+                          ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                          : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20'
                         }`}
                       placeholder="e.g. Stanford University"
                       type="text"
@@ -190,73 +199,69 @@ export default function Step4Education({ data, onChange, errors = {} }) {
                   </div>
                 </div>
 
+                {/* Calendar Date Inputs: Start Date & End Date */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block font-label-form text-[13px] font-medium text-[#14243B] mb-1.5">
-                      Start Date / Year
+                      Start Date
                     </label>
                     <input
-                      className="w-full h-11 px-3.5 rounded-lg border border-[#DCE5F0] bg-white text-[#14243B] font-body-default text-body-default focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 transition-all outline-none"
-                      placeholder="e.g. 2020"
-                      type="text"
-                      value={edu.start_date || edu.startDate || ''}
+                      className="w-full h-11 px-3.5 rounded-lg border border-[#DCE5F0] bg-white text-[#14243B] font-body-default text-body-default focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 transition-all outline-none cursor-pointer"
+                      type="date"
+                      value={toDateInputValue(edu.start_date || edu.startDate)}
                       onChange={(e) => handleUpdate(index, 'start_date', e.target.value)}
                     />
                   </div>
                   <div>
-                    <label className="block font-label-form text-[13px] font-medium text-[#14243B] mb-1.5">
-                      End Date / Year
-                    </label>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block font-label-form text-[13px] font-medium text-[#14243B]">
+                        End Date / Graduation
+                      </label>
+                      <label className="inline-flex items-center gap-1.5 cursor-pointer text-xs text-[#64748B]">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(edu.is_current)}
+                          onChange={(e) => handleUpdate(index, 'is_current', e.target.checked)}
+                          className="rounded border-[#DCE5F0] text-[#2563EB] focus:ring-[#2563EB]"
+                        />
+                        <span>Currently enrolled</span>
+                      </label>
+                    </div>
                     <input
-                      className="w-full h-11 px-3.5 rounded-lg border border-[#DCE5F0] bg-white text-[#14243B] font-body-default text-body-default focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 transition-all outline-none disabled:bg-[#F8FAFC]"
-                      placeholder="e.g. 2024"
-                      type="text"
-                      value={edu.end_date || edu.endDate || ''}
+                      className="w-full h-11 px-3.5 rounded-lg border border-[#DCE5F0] bg-white text-[#14243B] font-body-default text-body-default focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 transition-all outline-none disabled:bg-[#F8FAFC] disabled:cursor-not-allowed cursor-pointer"
+                      type="date"
+                      value={edu.is_current ? '' : toDateInputValue(edu.end_date || edu.endDate)}
                       disabled={Boolean(edu.is_current)}
                       onChange={(e) => handleUpdate(index, 'end_date', e.target.value)}
                     />
                   </div>
                   <div>
                     <label className="block font-label-form text-[13px] font-medium text-[#14243B] mb-1.5">
-                      GPA
+                      GPA / Honors (Optional)
                     </label>
                     <input
                       className="w-full h-11 px-3.5 rounded-lg border border-[#DCE5F0] bg-white text-[#14243B] font-body-default text-body-default focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 transition-all outline-none"
-                      placeholder="e.g. 3.8"
+                      placeholder="e.g. 3.8 / 4.0 or First Class"
                       type="text"
                       value={edu.gpa || ''}
                       onChange={(e) => handleUpdate(index, 'gpa', e.target.value)}
                     />
                   </div>
                 </div>
-
-                <div className="flex items-center gap-2 pt-1">
-                  <input
-                    type="checkbox"
-                    id={`isCurrent-${index}`}
-                    checked={Boolean(edu.is_current)}
-                    onChange={(e) => handleUpdate(index, 'is_current', e.target.checked)}
-                    className="w-4 h-4 text-[#2563EB] border-[#DCE5F0] rounded focus:ring-[#2563EB]"
-                  />
-                  <label htmlFor={`isCurrent-${index}`} className="text-[13px] text-[#14243B] cursor-pointer">
-                    Currently studying here
-                  </label>
-                </div>
               </div>
             </div>
           )
         })}
-      </div>
 
-      {/* Add Button */}
-      <button
-        onClick={handleAdd}
-        className="w-full h-11 rounded-lg border-2 border-dashed border-[#DCE5F0] hover:border-[#2563EB] text-[#2563EB] font-body-semibold text-[13px] flex items-center justify-center gap-2 hover:bg-[#EFF6FF] transition-all cursor-pointer"
-        type="button"
-      >
-        <span className="material-symbols-outlined text-[18px]">add_circle</span>
-        <span>Add Another Degree or Educational Credential</span>
-      </button>
+        <button
+          onClick={handleAddEducation}
+          className="inline-flex items-center gap-1.5 h-10 px-4 rounded-xl bg-white border border-[#DCE5F0] hover:border-[#2563EB] text-[#2563EB] text-xs font-semibold shadow-2xs hover:bg-[#EFF6FF] transition-all cursor-pointer"
+          type="button"
+        >
+          <span className="material-symbols-outlined text-[18px]">add</span>
+          <span>Add Another Degree or School</span>
+        </button>
+      </div>
     </div>
   )
 }

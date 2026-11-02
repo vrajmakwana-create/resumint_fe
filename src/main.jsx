@@ -64,11 +64,9 @@ function ThemedApp() {
 }
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <StyledEngineProvider injectFirst>
-      <ThemeProvider>
-        <ThemedApp />
-      </ThemeProvider>
-    </StyledEngineProvider>
-  </StrictMode>,
+  <StyledEngineProvider injectFirst>
+    <ThemeProvider>
+      <ThemedApp />
+    </ThemeProvider>
+  </StyledEngineProvider>
 )

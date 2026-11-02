@@ -223,8 +223,13 @@ export default function ResumePreviewPane({ resumeData, currentStep }) {
                       <span className="pr-2 break-words leading-snug">
                         {jobTitle}{jobTitle && companyName ? ' • ' : ''}{companyName}
                       </span>
-                      <span className="text-[#64748B] font-normal text-[8.5px] shrink-0">
-                        {startDate}{startDate && endDate ? ' — ' : ''}{endDate}
+                      <span className="text-[#64748B] font-normal text-[8.5px] shrink-0 flex items-center gap-1">
+                        <span>{startDate}{startDate && endDate ? ' — ' : ''}{endDate}</span>
+                        {exp.experience_years != null && (
+                          <span className="text-[7.5px] font-semibold text-[#2563EB] bg-[#EFF6FF] px-1 py-0.2 rounded border border-[#BFDBFE]">
+                            ({exp.experience_years}y)
+                          </span>
+                        )}
                       </span>
                     </div>
                     {bulletList.length > 0 && (

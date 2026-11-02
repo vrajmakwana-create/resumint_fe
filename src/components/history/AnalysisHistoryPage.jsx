@@ -11,6 +11,7 @@ export default function AnalysisHistoryPage({ onNavigate, onLogout }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [scoreFilter, setScoreFilter] = useState('all')
   const [deletingId, setDeletingId] = useState(null)
+  const [itemToDelete, setItemToDelete] = useState(null)
 
   const fetchHistory = async () => {
     setIsLoading(true)
@@ -86,26 +87,32 @@ export default function AnalysisHistoryPage({ onNavigate, onLogout }) {
     return matchesSearch && matchesScore
   })
 
-  const handleDelete = async (id) => {
-    if (!id || deletingId) return
+  // Close delete modal on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && itemToDelete) {
+        setItemToDelete(null)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [itemToDelete])
 
-    const confirmed = window.confirm(
-      'Delete this job description analysis? This action cannot be undone.'
-    )
-    if (!confirmed) return
-
-    // Optimistic removal, keep a snapshot to roll back on failure
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete || deletingId) return
+    const id = itemToDelete.id
     const snapshot = records
+
     setDeletingId(id)
     setErrorMsg(null)
     setIsCachedFallback(false)
     setRecords((prev) => prev.filter((r) => r.id !== id))
+    setItemToDelete(null)
 
     try {
       await resumeApi.deleteJobDescription(id)
     } catch (err) {
       console.error('Failed to delete job description analysis:', err)
-      // Roll back the optimistic update
       setRecords(snapshot)
       setErrorMsg(err.message || 'Unable to delete this analysis. Please try again.')
       setIsCachedFallback(false)
@@ -150,27 +157,6 @@ export default function AnalysisHistoryPage({ onNavigate, onLogout }) {
 
         {/* WORKSPACE */}
         <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 max-w-[1440px] w-full mx-auto space-y-6">
-          {/* Breadcrumbs */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#EFF6FF] border border-[#DCE5F0] text-[11px] font-body-semibold text-[#102544]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB]" />
-              <span>ATS Optimizer</span>
-              <span className="text-[#94A3B8]">•</span>
-              <span className="text-[#64748B] font-medium">Job Analysis History</span>
-            </div>
-
-            <button
-              onClick={fetchHistory}
-              disabled={isLoading}
-              className="inline-flex items-center gap-1.5 text-xs text-[#2563EB] font-semibold hover:underline cursor-pointer disabled:opacity-50"
-              type="button"
-            >
-              <span className={`material-symbols-outlined text-[16px] ${isLoading ? 'animate-spin' : ''}`}>
-                refresh
-              </span>
-              <span>Refresh History</span>
-            </button>
-          </div>
 
           {/* Page Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -356,10 +342,10 @@ export default function AnalysisHistoryPage({ onNavigate, onLogout }) {
                           <td className="px-6 py-4">
                             <span
                               className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-bold text-xs ${score >= 80
-                                  ? 'bg-[#DCFCE7] text-[#15803D]'
-                                  : score >= 65
-                                    ? 'bg-[#EFF6FF] text-[#2563EB]'
-                                    : 'bg-[#FEF2F2] text-[#DC2626]'
+                                ? 'bg-[#DCFCE7] text-[#15803D]'
+                                : score >= 65
+                                  ? 'bg-[#EFF6FF] text-[#2563EB]'
+                                  : 'bg-[#FEF2F2] text-[#DC2626]'
                                 }`}
                             >
                               <span>{score}%</span>
@@ -397,7 +383,7 @@ export default function AnalysisHistoryPage({ onNavigate, onLogout }) {
                                 <span>View Results</span>
                               </button>
                               <button
-                                onClick={() => handleDelete(item.id)}
+                                onClick={() => setItemToDelete(item)}
                                 disabled={deletingId === item.id}
                                 className="p-1.5 text-[#94A3B8] hover:text-[#DC2626] rounded transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                 title="Delete"
@@ -430,6 +416,87 @@ export default function AnalysisHistoryPage({ onNavigate, onLogout }) {
           )}
         </main>
       </div>
+
+      {/* Delete Confirmation Popup Modal */}
+      {itemToDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 animate-in fade-in"
+          onClick={() => setItemToDelete(null)}
+        >
+          <div
+            className="relative w-full max-w-md bg-white dark:bg-[#151E32] rounded-2xl shadow-2xl border border-[#DCE5F0] dark:border-[#24334A] overflow-hidden p-6 text-center space-y-5 transform transition-all duration-300 animate-in zoom-in-95"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Top Close Button */}
+            <button
+              type="button"
+              onClick={() => setItemToDelete(null)}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-[#94A3B8] hover:text-[#14243B] dark:hover:text-white hover:bg-[#F1F5F9] dark:hover:bg-[#1E293B] transition-colors cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[18px]">close</span>
+            </button>
+
+            {/* Warning Icon Badge */}
+            <div className="mx-auto w-16 h-16 rounded-2xl bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 flex items-center justify-center shadow-inner">
+              <span className="material-symbols-outlined text-[32px] animate-pulse">delete_forever</span>
+            </div>
+
+            {/* Title & Description */}
+            <div className="space-y-2">
+              <h3 className="text-[18px] font-bold text-[#14243B] dark:text-white tracking-tight">
+                Delete Job Analysis?
+              </h3>
+              <p className="text-[13px] text-[#64748B] dark:text-[#94A3B8] leading-relaxed">
+                Are you sure you want to delete this scan? This will permanently remove all match metrics, gap verdicts, and tailored recommendations.
+              </p>
+            </div>
+
+            {/* Analysis Summary Highlight Card */}
+            <div className="p-3.5 bg-[#F8FAFC] dark:bg-[#0B1120] rounded-xl border border-[#E2E8F0] dark:border-[#1E293B] text-left space-y-1.5">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-bold text-[14px] text-[#14243B] dark:text-white truncate">
+                  {itemToDelete.company_name || 'Target Company'}
+                </span>
+                {itemToDelete.match_score != null && (
+                  <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#DCFCE7] text-[#15803D] shrink-0">
+                    {itemToDelete.match_score}% Match
+                  </span>
+                )}
+              </div>
+              <p className="text-[12px] text-[#64748B] dark:text-[#94A3B8] truncate">
+                {itemToDelete.job_title || 'Position Title'}
+              </p>
+              <div className="flex items-center gap-1.5 text-[11px] text-[#94A3B8] pt-0.5">
+                <span className="material-symbols-outlined text-[14px]">calendar_today</span>
+                <span>Scanned on {formatTimestamp(itemToDelete.created_at)}</span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setItemToDelete(null)}
+                className="flex-1 h-10 px-4 rounded-xl border border-[#DCE5F0] dark:border-[#334155] text-[#64748B] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#1E293B] font-semibold text-[13px] transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={Boolean(deletingId)}
+                className="flex-1 h-10 px-4 rounded-xl bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-semibold text-[13px] shadow-sm shadow-red-500/30 flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+              >
+                <span className="material-symbols-outlined text-[18px]">
+                  {deletingId ? 'progress_activity' : 'delete'}
+                </span>
+                <span>{deletingId ? 'Deleting...' : 'Delete Scan'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+
   )
 }

@@ -9,6 +9,7 @@ import ResumePreviewPane from './ResumePreviewPane'
 import ThemeToggle from '../common/ThemeToggle'
 import { resumeApi, authApi, getCurrentUser, setCurrentUser } from '../../services/api'
 import { normalizeSkills, getTotalSkillsCount } from './skillsConfig'
+import { toDateMilliseconds, formatDateDisplay } from '../../utils/dateUtils'
 
 const stepsConfig = [
   {
@@ -364,6 +365,13 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
             rawExperiences = expData.data
           }
 
+          const totalExpYears =
+            expData?.total_experience_years ??
+            expData?.candidate_experience_years ??
+            expData?.data?.total_experience_years ??
+            expData?.data?.candidate_experience_years ??
+            null
+
           if (rawExperiences.length > 0) {
             const mappedExperiences = rawExperiences.map((exp, idx) => ({
               job_title: exp.job_title || exp.title || '',
@@ -382,6 +390,7 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
               startDate: exp.start_date || exp.startDate || '',
               end_date: (exp.is_currently_work_here ?? exp.isCurrent) ? '' : exp.end_date || exp.endDate || '',
               endDate: (exp.is_currently_work_here ?? exp.isCurrent) ? 'Present' : exp.end_date || exp.endDate || '',
+              experience_years: exp.experience_years != null ? Number(exp.experience_years) : null,
               responsibilities: exp.responsibilities || (exp.bullets && exp.bullets[0]) || '',
               achievements: exp.achievements || (exp.bullets && exp.bullets[1]) || '',
               bullets: [exp.responsibilities, exp.achievements].filter(Boolean),
@@ -393,6 +402,8 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
               setResumeData((prev) => ({
                 ...prev,
                 experience: mappedExperiences,
+                total_experience_years: totalExpYears != null ? Number(totalExpYears) : null,
+                candidate_experience_years: totalExpYears != null ? Number(totalExpYears) : null,
                 noExperience: false,
               }))
               setHasExistingExperience(true)
@@ -420,8 +431,8 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
               url: proj.url || proj.githubUrl || proj.liveUrl || '',
               liveUrl: proj.url || proj.liveUrl || '',
               githubUrl: proj.url || proj.githubUrl || '',
-              start_date: Number(proj.start_date) || 20230101,
-              end_date: Number(proj.end_date) || 20230830,
+              start_date: toDateMilliseconds(proj.start_date) || 1672531200000,
+        end_date: toDateMilliseconds(proj.end_date) || 1693440000000,
               status: proj.status || 'Completed',
               responsibilities: proj.responsibilities || '',
               achievements: proj.achievements || '',
@@ -708,8 +719,8 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
       .map((edu) => ({
         degree: (edu.degree || '').trim(),
         school_name: (edu.school_name || edu.school || '').trim(),
-        start_date: edu.start_date || edu.startDate || '',
-        end_date: edu.end_date || edu.endDate || '',
+        start_date: toDateMilliseconds(edu.start_date || edu.startDate),
+        end_date: edu.is_current ? null : toDateMilliseconds(edu.end_date || edu.endDate),
         gpa: edu.gpa || '',
         field_of_study: edu.field_of_study || edu.field || '',
         url: edu.url || '',
@@ -768,8 +779,8 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
         location_type: exp.location_type || 'Hybrid',
         employment_type: exp.employment_type || exp.type || 'Full-time',
         is_currently_work_here: Boolean(exp.is_currently_work_here ?? exp.isCurrent),
-        start_date: exp.start_date || exp.startDate || '',
-        end_date: (exp.is_currently_work_here ?? exp.isCurrent) ? null : exp.end_date || exp.endDate || null,
+        start_date: toDateMilliseconds(exp.start_date || exp.startDate),
+        end_date: (exp.is_currently_work_here ?? exp.isCurrent) ? null : toDateMilliseconds(exp.end_date || exp.endDate),
         responsibilities: exp.responsibilities || (exp.bullets && exp.bullets[0]) || '',
         achievements: exp.achievements || (exp.bullets && exp.bullets[1]) || '',
         order: exp.order || idx + 1,
@@ -790,6 +801,22 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
       const response = hasExistingExperience
         ? await resumeApi.updateWorkExperience(payload)
         : await resumeApi.saveWorkExperience(payload)
+
+      const resData = response?.data || response
+      const updatedTotal =
+        resData?.total_experience_years ??
+        resData?.candidate_experience_years ??
+        resData?.data?.total_experience_years ??
+        null
+
+      if (updatedTotal != null) {
+        setResumeData((prev) => ({
+          ...prev,
+          total_experience_years: Number(updatedTotal),
+          candidate_experience_years: Number(updatedTotal),
+        }))
+      }
+
       setHasExistingExperience(true)
       setSaveState(0)
       setApiFeedback({
@@ -822,8 +849,8 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
         name: proj.name.trim(),
         description: proj.description || '',
         url: proj.url || proj.githubUrl || proj.liveUrl || '',
-        start_date: Number(proj.start_date) || 20230101,
-        end_date: Number(proj.end_date) || 20230830,
+        start_date: toDateMilliseconds(proj.start_date) || 1672531200000,
+        end_date: toDateMilliseconds(proj.end_date) || 1693440000000,
         status: proj.status || 'Completed',
         responsibilities: proj.responsibilities || (proj.bullets && proj.bullets[0]) || '',
         achievements: proj.achievements || (proj.bullets && proj.bullets[1]) || '',

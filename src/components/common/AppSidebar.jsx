@@ -44,7 +44,7 @@ export default function AppSidebar({ currentView, onNavigate, onLogout }) {
     { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
     { id: 'analyze-job', label: 'Analyze Job Description', icon: 'document_scanner' },
     { id: 'analysis-history', label: 'History', icon: 'history' },
-    { id: 'my-resumes', label: 'My Resumes', icon: 'description', badge: '2' },
+    // { id: 'my-resumes', label: 'My Resumes', icon: 'description', badge: '2' },
   ]
 
   const bottomItems = [
@@ -63,9 +63,8 @@ export default function AppSidebar({ currentView, onNavigate, onLogout }) {
 
       {/* Sidebar (Fixed drawer on mobile, static on desktop) */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-[248px] bg-[#102544] flex flex-col justify-between shrink-0 select-none min-h-screen transition-transform duration-300 ease-in-out ${
-          isMobileOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'
-        }`}
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-[248px] bg-[#102544] flex flex-col justify-between shrink-0 select-none min-h-screen transition-transform duration-300 ease-in-out ${isMobileOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'
+          }`}
       >
         {/* Top Section */}
         <div>
@@ -109,20 +108,18 @@ export default function AppSidebar({ currentView, onNavigate, onLogout }) {
                   key={item.id}
                   onClick={() => handleNavClick(item.id)}
                   type="button"
-                  className={`w-full relative flex items-center justify-between px-3 py-2.5 rounded-lg font-body-semibold text-body-semibold transition-all duration-150 cursor-pointer ${
-                    isActive
+                  className={`w-full relative flex items-center justify-between px-3 py-2.5 rounded-lg font-body-semibold text-body-semibold transition-all duration-150 cursor-pointer ${isActive
                       ? 'bg-[#1E3A5F]/80 text-white shadow-sm'
                       : 'text-[#94A3B8] hover:text-white hover:bg-white/5'
-                  }`}
+                    }`}
                 >
                   {isActive && (
                     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-[#2563EB] rounded-r" />
                   )}
                   <div className="flex items-center gap-3">
                     <span
-                      className={`material-symbols-outlined text-[20px] ${
-                        isActive ? 'text-white' : 'text-[#94A3B8]'
-                      }`}
+                      className={`material-symbols-outlined text-[20px] ${isActive ? 'text-white' : 'text-[#94A3B8]'
+                        }`}
                     >
                       {item.icon}
                     </span>
@@ -130,9 +127,8 @@ export default function AppSidebar({ currentView, onNavigate, onLogout }) {
                   </div>
                   {item.badge && (
                     <span
-                      className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
-                        isActive ? 'bg-[#2563EB] text-white' : 'bg-[#1E3A5F] text-[#94A3B8]'
-                      }`}
+                      className={`px-2 py-0.5 text-xs font-semibold rounded-full ${isActive ? 'bg-[#2563EB] text-white' : 'bg-[#1E3A5F] text-[#94A3B8]'
+                        }`}
                     >
                       {item.badge}
                     </span>
@@ -153,11 +149,10 @@ export default function AppSidebar({ currentView, onNavigate, onLogout }) {
                   key={item.id}
                   onClick={() => handleNavClick(item.id)}
                   type="button"
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg font-body-medium text-body-medium transition-colors cursor-pointer ${
-                    isActive
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg font-body-medium text-body-medium transition-colors cursor-pointer ${isActive
                       ? 'bg-[#1E3A5F]/80 text-white'
                       : 'text-[#94A3B8] hover:text-white hover:bg-white/5'
-                  }`}
+                    }`}
                 >
                   <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
                   <span>{item.label}</span>

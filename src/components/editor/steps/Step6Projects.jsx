@@ -1,3 +1,5 @@
+import { toDateInputValue } from '../../../utils/dateUtils'
+
 export default function Step6Projects({ data, onChange, errors = {} }) {
   const blankProject = {
     name: '',
@@ -5,8 +7,8 @@ export default function Step6Projects({ data, onChange, errors = {} }) {
     url: '',
     liveUrl: '',
     githubUrl: '',
-    start_date: 20230101,
-    end_date: 20230830,
+    start_date: '',
+    end_date: '',
     status: 'Completed',
     responsibilities: '',
     achievements: '',
@@ -39,8 +41,8 @@ export default function Step6Projects({ data, onChange, errors = {} }) {
         url: '',
         liveUrl: '',
         githubUrl: '',
-        start_date: 20230101,
-        end_date: 20230830,
+        start_date: '',
+        end_date: '',
         status: 'Completed',
         responsibilities: '',
         achievements: '',
@@ -58,52 +60,49 @@ export default function Step6Projects({ data, onChange, errors = {} }) {
 
   return (
     <div className="space-y-6">
-      {/* Form Header Section */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-[#F1F5F9]">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-[#F1F5F9]">
         <div>
-          <span className="font-label-form text-[13px] text-[#14243B] font-semibold flex items-center gap-1.5">
-            <span>Featured Projects &amp; Portfolio Highlights</span>
-            {!noProjects && <span className="text-red-500 font-bold">*</span>}
-          </span>
-          <p className="font-body-default text-[12px] text-[#64748B] mt-0.5">
-            Highlight projects demonstrating practical skills. Project Name is required.
+          <h2 className="font-headline-section text-headline-section text-[#14243B] font-bold">
+            Projects &amp; Portfolio
+          </h2>
+          <p className="font-body-default text-body-default text-[#64748B] mt-0.5">
+            Highlight technical projects, open-source work, or enterprise deliverables.
           </p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <label className="inline-flex items-center gap-2 cursor-pointer bg-white border border-[#DCE5F0] hover:border-[#CBD5E1] px-3 py-1.5 rounded-lg text-[13px] text-[#14243B] shadow-sm transition-all select-none">
-            <input
-              type="checkbox"
-              checked={noProjects}
-              onChange={(e) => onChange('noProjects', e.target.checked)}
-              className="rounded border-[#DCE5F0] text-[#2563EB] focus:ring-[#2563EB] w-4 h-4 cursor-pointer"
-            />
-            <span className="font-body-medium text-[12.5px]">No projects to highlight right now</span>
-          </label>
 
-
-        </div>
+        {/* No Projects Toggle Checkbox */}
+        <label className="inline-flex items-center gap-2 cursor-pointer bg-[#F8FAFC] border border-[#DCE5F0] px-3.5 py-2 rounded-xl text-xs font-semibold text-[#14243B] hover:border-[#2563EB] transition-colors shrink-0">
+          <input
+            type="checkbox"
+            checked={noProjects}
+            onChange={(e) => {
+              onChange('noProjects', e.target.checked)
+              if (e.target.checked) {
+                onChange('projects', [])
+              } else if (items.length === 0) {
+                onChange('projects', [blankProject])
+              }
+            }}
+            className="w-4 h-4 rounded border-[#DCE5F0] text-[#2563EB] focus:ring-[#2563EB]"
+          />
+          <span>No projects to highlight right now</span>
+        </label>
       </div>
 
-      {/* No Projects State Banner */}
       {noProjects ? (
-        <div className="p-6 rounded-xl bg-[#F8FAFC] border border-[#DCE5F0] text-center space-y-2">
-          <div className="w-10 h-10 rounded-full bg-[#EFF6FF] text-[#2563EB] flex items-center justify-center mx-auto">
-            <span className="material-symbols-outlined text-[22px]">folder</span>
+        <div className="p-8 text-center bg-[#F8FAFC] rounded-2xl border-2 border-dashed border-[#DCE5F0] space-y-3">
+          <div className="w-12 h-12 rounded-full bg-[#EFF6FF] text-[#2563EB] flex items-center justify-center mx-auto">
+            <span className="material-symbols-outlined text-[24px]">folder_off</span>
           </div>
-          <h4 className="font-body-semibold text-[#14243B] text-[14px]">Projects Section Skipped</h4>
-          <p className="text-[13px] text-[#64748B] max-w-md mx-auto">
-            You can proceed without project entries. You can always add portfolio projects later from your dashboard.
-          </p>
-          <button
-            type="button"
-            onClick={() => onChange('noProjects', false)}
-            className="text-[12px] text-[#2563EB] hover:underline font-semibold pt-1 cursor-pointer"
-          >
-            Switch back to add projects
-          </button>
+          <div className="max-w-md mx-auto space-y-1">
+            <p className="font-bold text-[#14243B] text-[15px]">Projects Skipped</p>
+            <p className="text-xs text-[#64748B] leading-relaxed">
+              Your resume will dedicate more space to your professional experience and technical competencies.
+            </p>
+          </div>
         </div>
       ) : (
-        /* Projects List */
         <div className="space-y-6">
           {items.map((proj, idx) => {
             const nameError = errors[`proj_${idx}_name`]
@@ -111,31 +110,28 @@ export default function Step6Projects({ data, onChange, errors = {} }) {
             return (
               <div
                 key={idx}
-                className={`bg-white rounded-xl border p-6 shadow-sm space-y-4 transition-all ${nameError ? 'border-red-400 ring-1 ring-red-400/20' : 'border-[#DCE5F0] hover:border-[#2563EB]/40'
-                  }`}
+                className="bg-white border border-[#DCE5F0] rounded-2xl p-5 sm:p-6 shadow-xs space-y-4 transition-all"
               >
-                {/* Header */}
-                <div className="flex items-start justify-between pb-3 border-b border-[#DCE5F0]">
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#64748B] cursor-grab text-[20px]">
-                      drag_indicator
+                {/* Header Row */}
+                <div className="flex items-center justify-between pb-3 border-b border-[#F1F5F9]">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="w-6 h-6 rounded-full bg-[#EFF6FF] text-[#2563EB] flex items-center justify-center text-xs font-bold shrink-0">
+                      {idx + 1}
                     </span>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-headline-card font-headline-card text-[#14243B] font-semibold">
-                        Project #{idx + 1} • {proj.name || 'Project Name'}
-                      </h3>
-                      {idx === 0 && (
-                        <span className="px-2 py-0.5 bg-[#EFF6FF] text-[#2563EB] text-[10px] font-bold rounded uppercase border border-[#2563EB]/20">
-                          FEATURED PROJECT
-                        </span>
-                      )}
-                    </div>
+                    <h3 className="text-[15px] font-bold text-[#14243B]">
+                      {proj.name || `Project #${idx + 1}`}
+                    </h3>
+                    {idx === 0 && (
+                      <span className="px-2 py-0.5 bg-[#EFF6FF] text-[#2563EB] text-[10px] font-bold rounded uppercase border border-[#2563EB]/20">
+                        FEATURED
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-1">
                     {items.length > 1 && (
                       <button
                         onClick={() => handleDeleteProject(idx)}
-                        className="p-1 hover:text-[#DC2626] rounded transition-colors text-[#64748B] cursor-pointer"
+                        className="p-1.5 hover:text-[#DC2626] rounded-lg transition-colors text-[#64748B] hover:bg-red-50 cursor-pointer"
                         title="Delete project"
                         type="button"
                       >
@@ -145,7 +141,7 @@ export default function Step6Projects({ data, onChange, errors = {} }) {
                   </div>
                 </div>
 
-                {/* Inputs */}
+                {/* Form Fields */}
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
@@ -180,6 +176,28 @@ export default function Step6Projects({ data, onChange, errors = {} }) {
                         <option value="In Progress">In Progress</option>
                         <option value="Maintained">Maintained</option>
                       </select>
+                    </div>
+                  </div>
+
+                  {/* Calendar Date Inputs: Start Date & End Date */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[13px] font-medium text-[#14243B] block">Start Date</label>
+                      <input
+                        className="w-full h-11 px-3.5 bg-white border border-[#DCE5F0] rounded-lg text-[14px] text-[#14243B] font-body-default focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15 outline-none transition-all cursor-pointer"
+                        type="date"
+                        value={toDateInputValue(proj.start_date)}
+                        onChange={(e) => handleUpdate(idx, 'start_date', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[13px] font-medium text-[#14243B] block">End Date</label>
+                      <input
+                        className="w-full h-11 px-3.5 bg-white border border-[#DCE5F0] rounded-lg text-[14px] text-[#14243B] font-body-default focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15 outline-none transition-all cursor-pointer"
+                        type="date"
+                        value={toDateInputValue(proj.end_date)}
+                        onChange={(e) => handleUpdate(idx, 'end_date', e.target.value)}
+                      />
                     </div>
                   </div>
 
@@ -233,19 +251,17 @@ export default function Step6Projects({ data, onChange, errors = {} }) {
                     </div>
                   </div>
                 </div>
-
-
               </div>
             )
           })}
           {!noProjects && (
             <button
               onClick={handleAddProject}
-              className="inline-flex items-center gap-1.5 h-9 px-3.5 bg-[#2563EB] text-white rounded-lg text-[12.5px] font-body-semibold hover:bg-[#1D4ED8] transition-colors shadow-sm cursor-pointer"
+              className="inline-flex items-center gap-1.5 h-10 px-4 rounded-xl bg-white border border-[#DCE5F0] hover:border-[#2563EB] text-[#2563EB] text-xs font-semibold shadow-2xs hover:bg-[#EFF6FF] transition-all cursor-pointer"
               type="button"
             >
-              <span className="material-symbols-outlined text-[17px]">add</span>
-              <span>Add Project</span>
+              <span className="material-symbols-outlined text-[18px]">add</span>
+              <span>Add Another Project</span>
             </button>
           )}
         </div>

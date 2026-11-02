@@ -1,4 +1,110 @@
+import { useMemo, useState } from 'react'
+import { Country, State, City } from 'country-state-city'
+import SelectWithInvisibleSearch from '../../common/SelectWithInvisibleSearch'
+
 export default function Step1PersonalInfo({ data, onChange, errors = {} }) {
+  const allCountries = useMemo(() => Country.getAllCountries(), [])
+
+  // Find country by isoCode or name (case-insensitive)
+  const selectedCountry = useMemo(() => {
+    if (!data.country) return null
+    const cNorm = data.country.trim().toLowerCase()
+    return (
+      allCountries.find(
+        (c) => c.isoCode.toLowerCase() === cNorm || c.name.toLowerCase() === cNorm
+      ) || null
+    )
+  }, [data.country, allCountries])
+
+  // States available for the selected country
+  const availableStates = useMemo(() => {
+    if (!selectedCountry) return []
+    return State.getStatesOfCountry(selectedCountry.isoCode)
+  }, [selectedCountry])
+
+  // Find state by isoCode or name (case-insensitive)
+  const selectedState = useMemo(() => {
+    if (!data.state || availableStates.length === 0) return null
+    const sNorm = data.state.trim().toLowerCase()
+    return (
+      availableStates.find(
+        (s) => s.isoCode.toLowerCase() === sNorm || s.name.toLowerCase() === sNorm
+      ) || null
+    )
+  }, [data.state, availableStates])
+
+  // Cities available for the selected country & state
+  const availableCities = useMemo(() => {
+    if (!selectedCountry || !selectedState) return []
+    return City.getCitiesOfState(selectedCountry.isoCode, selectedState.isoCode)
+  }, [selectedCountry, selectedState])
+
+  const [isManualCity, setIsManualCity] = useState(false)
+
+  // Options for Country (Names only - NO Country Codes)
+  const countryOptions = useMemo(() => {
+    return allCountries.map((c) => ({
+      value: c.isoCode,
+      label: c.name, // Pure country name (e.g. India, United States)
+    }))
+  }, [allCountries])
+
+  // Options for State
+  const stateOptions = useMemo(() => {
+    return availableStates.map((s) => ({
+      value: s.isoCode,
+      label: s.name,
+    }))
+  }, [availableStates])
+
+  // Options for City
+  const cityOptions = useMemo(() => {
+    const list = availableCities.map((c) => ({
+      value: c.name,
+      label: c.name,
+    }))
+    // Preserve current city if not in the official list
+    if (
+      data.city &&
+      !list.some((item) => item.value.toLowerCase() === data.city.toLowerCase())
+    ) {
+      list.unshift({ value: data.city, label: data.city })
+    }
+    return list
+  }, [availableCities, data.city])
+
+  // Handle Country selection
+  const handleCountryChange = (countryIsoCode) => {
+    const countryObj = allCountries.find((c) => c.isoCode === countryIsoCode)
+    const countryName = countryObj ? countryObj.name : ''
+    onChange('country', countryName)
+    // Clear state and city when country changes
+    onChange('state', '')
+    onChange('city', '')
+    setIsManualCity(false)
+    const loc = [data.address, countryName].filter(Boolean).join(', ')
+    onChange('location', loc)
+  }
+
+  // Handle State selection
+  const handleStateChange = (stateIsoCode) => {
+    const stateObj = availableStates.find((s) => s.isoCode === stateIsoCode)
+    const stateName = stateObj ? stateObj.name : ''
+    onChange('state', stateName)
+    // Clear city when state changes
+    onChange('city', '')
+    setIsManualCity(false)
+    const loc = [stateName, data.country].filter(Boolean).join(', ')
+    onChange('location', loc)
+  }
+
+  // Handle City selection
+  const handleCityChange = (cityName) => {
+    onChange('city', cityName)
+    const loc = [cityName, data.state, data.country].filter(Boolean).join(', ')
+    onChange('location', loc)
+  }
+
   return (
     <div className="space-y-5">
       {/* Row 1: First Name & Last Name */}
@@ -139,7 +245,153 @@ export default function Step1PersonalInfo({ data, onChange, errors = {} }) {
         </div>
       </div>
 
-      {/* Row 3: Street Address & City */}
+      {/* Row 3: Country, State / Region, City (Cascading with Invisible Search) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {/* Country Dropdown */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <label className="font-label-form text-[13px] text-[#14243B] font-medium" htmlFor="country">
+              Country <span className="text-red-500 font-bold">*</span>
+            </label>
+            <span
+              className={`text-[12px] ${
+                errors.country ? 'text-red-600 font-semibold' : 'text-[#64748B]'
+              }`}
+            >
+              Required
+            </span>
+          </div>
+          <div className="relative">
+            <SelectWithInvisibleSearch
+              id="country"
+              value={selectedCountry?.isoCode || ''}
+              options={countryOptions}
+              placeholder="Select Country"
+              onChange={(val) => handleCountryChange(val)}
+              error={Boolean(errors.country)}
+            />
+          </div>
+          {errors.country && (
+            <p className="text-[12px] text-red-600 mt-1 flex items-center gap-1 font-body-medium">
+              <span className="material-symbols-outlined text-[15px]">error</span>
+              <span>{errors.country}</span>
+            </p>
+          )}
+        </div>
+
+        {/* State / Region Dropdown */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <label className="font-label-form text-[13px] text-[#14243B] font-medium" htmlFor="state">
+              State / Region <span className="text-red-500 font-bold">*</span>
+            </label>
+            <span
+              className={`text-[12px] ${
+                errors.state ? 'text-red-600 font-semibold' : 'text-[#64748B]'
+              }`}
+            >
+              Required
+            </span>
+          </div>
+          <div className="relative">
+            {selectedCountry && availableStates.length === 0 ? (
+              <input
+                className={`w-full h-[44px] px-3.5 bg-white border rounded-lg text-[14px] text-[#14243B] placeholder-[#94A3B8] outline-none transition-all font-body-default ${
+                  errors.state
+                    ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                    : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15'
+                }`}
+                id="state"
+                placeholder="State / Region"
+                type="text"
+                value={data.state || ''}
+                onChange={(e) => {
+                  onChange('state', e.target.value)
+                  const loc = [data.city, e.target.value, data.country].filter(Boolean).join(', ')
+                  onChange('location', loc)
+                }}
+              />
+            ) : (
+              <SelectWithInvisibleSearch
+                id="state"
+                value={selectedState?.isoCode || ''}
+                options={stateOptions}
+                placeholder={selectedCountry ? 'Select State / Region' : 'Select Country First'}
+                disabled={!selectedCountry}
+                onChange={(val) => handleStateChange(val)}
+                error={Boolean(errors.state)}
+              />
+            )}
+          </div>
+          {errors.state && (
+            <p className="text-[12px] text-red-600 mt-1 flex items-center gap-1 font-body-medium">
+              <span className="material-symbols-outlined text-[15px]">error</span>
+              <span>{errors.state}</span>
+            </p>
+          )}
+        </div>
+
+        {/* City Dropdown */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <label className="font-label-form text-[13px] text-[#14243B] font-medium" htmlFor="city">
+              City <span className="text-red-500 font-bold">*</span>
+            </label>
+            <div className="flex items-center gap-2">
+              {availableCities.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setIsManualCity((prev) => !prev)}
+                  className="text-[11px] text-[#2563EB] hover:underline font-medium cursor-pointer"
+                >
+                  {isManualCity ? 'Select from list' : '+ Enter custom'}
+                </button>
+              )}
+              <span
+                className={`text-[12px] ${
+                  errors.city ? 'text-red-600 font-semibold' : 'text-[#64748B]'
+                }`}
+              >
+                Required
+              </span>
+            </div>
+          </div>
+          <div className="relative">
+            {isManualCity || (selectedState && availableCities.length === 0) ? (
+              <input
+                className={`w-full h-[44px] px-3.5 bg-white border rounded-lg text-[14px] text-[#14243B] placeholder-[#94A3B8] outline-none transition-all font-body-default ${
+                  errors.city
+                    ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                    : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15'
+                }`}
+                id="city"
+                placeholder="Enter city name"
+                type="text"
+                value={data.city || ''}
+                onChange={(e) => handleCityChange(e.target.value)}
+              />
+            ) : (
+              <SelectWithInvisibleSearch
+                id="city"
+                value={data.city || ''}
+                options={cityOptions}
+                placeholder={selectedState ? 'Select City' : 'Select State First'}
+                disabled={!selectedState}
+                onChange={(val) => handleCityChange(val)}
+                error={Boolean(errors.city)}
+              />
+            )}
+          </div>
+          {errors.city && (
+            <p className="text-[12px] text-red-600 mt-1 flex items-center gap-1 font-body-medium">
+              <span className="material-symbols-outlined text-[15px]">error</span>
+              <span>{errors.city}</span>
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Row 4: Street Address & ZIP / Postal Code */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
@@ -162,7 +414,7 @@ export default function Step1PersonalInfo({ data, onChange, errors = {} }) {
                   : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15'
               }`}
               id="streetAddr"
-              placeholder="123 Market St"
+              placeholder="123 Market St, Apt 4B"
               type="text"
               value={data.address || ''}
               onChange={(e) => onChange('address', e.target.value)}
@@ -172,87 +424,6 @@ export default function Step1PersonalInfo({ data, onChange, errors = {} }) {
             <p className="text-[12px] text-red-600 mt-1 flex items-center gap-1 font-body-medium">
               <span className="material-symbols-outlined text-[15px]">error</span>
               <span>{errors.address}</span>
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <label className="font-label-form text-[13px] text-[#14243B] font-medium" htmlFor="city">
-              City <span className="text-red-500 font-bold">*</span>
-            </label>
-            <span
-              className={`text-[12px] ${
-                errors.city ? 'text-red-600 font-semibold' : 'text-[#64748B]'
-              }`}
-            >
-              Required
-            </span>
-          </div>
-          <div className="relative">
-            <input
-              className={`w-full h-[44px] px-3.5 bg-white border rounded-lg text-[14px] text-[#14243B] placeholder-[#94A3B8] outline-none transition-all font-body-default ${
-                errors.city
-                  ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
-                  : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15'
-              }`}
-              id="city"
-              placeholder="San Francisco"
-              type="text"
-              value={data.city || ''}
-              onChange={(e) => {
-                onChange('city', e.target.value)
-                const loc = [e.target.value, data.state, data.country].filter(Boolean).join(', ')
-                onChange('location', loc)
-              }}
-            />
-          </div>
-          {errors.city && (
-            <p className="text-[12px] text-red-600 mt-1 flex items-center gap-1 font-body-medium">
-              <span className="material-symbols-outlined text-[15px]">error</span>
-              <span>{errors.city}</span>
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* Row 4: State, Zip Code, Country */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <label className="font-label-form text-[13px] text-[#14243B] font-medium" htmlFor="state">
-              State / Region <span className="text-red-500 font-bold">*</span>
-            </label>
-            <span
-              className={`text-[12px] ${
-                errors.state ? 'text-red-600 font-semibold' : 'text-[#64748B]'
-              }`}
-            >
-              Required
-            </span>
-          </div>
-          <div className="relative">
-            <input
-              className={`w-full h-[44px] px-3.5 bg-white border rounded-lg text-[14px] text-[#14243B] placeholder-[#94A3B8] outline-none transition-all font-body-default ${
-                errors.state
-                  ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
-                  : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15'
-              }`}
-              id="state"
-              placeholder="CA"
-              type="text"
-              value={data.state || ''}
-              onChange={(e) => {
-                onChange('state', e.target.value)
-                const loc = [data.city, e.target.value, data.country].filter(Boolean).join(', ')
-                onChange('location', loc)
-              }}
-            />
-          </div>
-          {errors.state && (
-            <p className="text-[12px] text-red-600 mt-1 flex items-center gap-1 font-body-medium">
-              <span className="material-symbols-outlined text-[15px]">error</span>
-              <span>{errors.state}</span>
             </p>
           )}
         </div>
@@ -288,45 +459,6 @@ export default function Step1PersonalInfo({ data, onChange, errors = {} }) {
             <p className="text-[12px] text-red-600 mt-1 flex items-center gap-1 font-body-medium">
               <span className="material-symbols-outlined text-[15px]">error</span>
               <span>{errors.zip_code}</span>
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <label className="font-label-form text-[13px] text-[#14243B] font-medium" htmlFor="country">
-              Country <span className="text-red-500 font-bold">*</span>
-            </label>
-            <span
-              className={`text-[12px] ${
-                errors.country ? 'text-red-600 font-semibold' : 'text-[#64748B]'
-              }`}
-            >
-              Required
-            </span>
-          </div>
-          <div className="relative">
-            <input
-              className={`w-full h-[44px] px-3.5 bg-white border rounded-lg text-[14px] text-[#14243B] placeholder-[#94A3B8] outline-none transition-all font-body-default ${
-                errors.country
-                  ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
-                  : 'border-[#DCE5F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15'
-              }`}
-              id="country"
-              placeholder="United States"
-              type="text"
-              value={data.country || ''}
-              onChange={(e) => {
-                onChange('country', e.target.value)
-                const loc = [data.city, data.state, e.target.value].filter(Boolean).join(', ')
-                onChange('location', loc)
-              }}
-            />
-          </div>
-          {errors.country && (
-            <p className="text-[12px] text-red-600 mt-1 flex items-center gap-1 font-body-medium">
-              <span className="material-symbols-outlined text-[15px]">error</span>
-              <span>{errors.country}</span>
             </p>
           )}
         </div>
@@ -411,9 +543,9 @@ export default function Step1PersonalInfo({ data, onChange, errors = {} }) {
           <span className="material-symbols-outlined text-[18px]">verified_user</span>
         </div>
         <div className="text-[13px] space-y-1">
-          <p className="font-body-semibold text-[#102544]">ATS Parsing Rule for Contact Details</p>
+          <p className="font-body-semibold text-[#102544]">ATS Parsing Rule for Location</p>
           <p className="text-[#64748B] leading-relaxed">
-            Ensure your email, phone, and location are directly readable text. ATS engines such as Taleo and Greenhouse extract these directly into your candidate profile card.
+            Selecting standard country, state, and city ensures ATS engines such as Taleo, Workday, and Greenhouse accurately index your location for remote and local matching.
           </p>
         </div>
       </div>

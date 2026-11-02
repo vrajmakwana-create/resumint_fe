@@ -221,8 +221,10 @@ export async function apiClient(endpoint, options = {}) {
     const response = await fetch(normalizedUrl, config)
 
     let data = null
-    const contentType = response.headers.get('content-type')
-    if (contentType && contentType.includes('application/json')) {
+    const contentType = response.headers.get('content-type') || ''
+    if (response.ok && (customConfig.responseType === 'blob' || contentType.includes('application/pdf') || contentType.includes('application/octet-stream'))) {
+      data = await response.blob()
+    } else if (contentType.includes('application/json')) {
       data = await response.json()
     } else {
       data = await response.text()
@@ -259,12 +261,53 @@ export async function apiClient(endpoint, options = {}) {
     }
 
     if (!response.ok) {
-      const errorMessage =
-        (data && (data.msg || data.detail || data.message || data.error)) ||
+      let detailedMessage = null
+
+      // Check if response contains array of validation errors in data.data (e.g. 422: [{ field, message }])
+      if (Array.isArray(data?.data) && data.data.length > 0) {
+        const msgs = data.data
+          .map((item) => {
+            if (typeof item === 'string') return item
+            const msg = item.message || item.msg || item.detail
+            const field = item.field ? `${item.field}: ` : ''
+            return msg ? `${field}${msg}` : null
+          })
+          .filter(Boolean)
+        if (msgs.length > 0) {
+          detailedMessage = msgs.join('. ')
+        }
+      } else if (Array.isArray(data?.detail) && data.detail.length > 0) {
+        const msgs = data.detail
+          .map((item) => {
+            if (typeof item === 'string') return item
+            const field = Array.isArray(item.loc) && item.loc.length > 1 ? `${item.loc.slice(1).join('.')}: ` : ''
+            const msg = item.msg || item.message
+            return msg ? `${field}${msg}` : null
+          })
+          .filter(Boolean)
+        if (msgs.length > 0) {
+          detailedMessage = msgs.join('. ')
+        }
+      }
+
+      let errorMessage =
+        detailedMessage ||
+        (data && (data.message || data.detail || data.msg || data.error)) ||
         `Request failed with status ${response.status}`
+
+      // Clean up redundant "Value error, " prefix if present from Pydantic validators
+      if (typeof errorMessage === 'string') {
+        errorMessage = errorMessage.replace(/^Value error,\s*/i, '')
+      }
+
       const error = new Error(errorMessage)
       error.status = response.status
       error.data = data
+      error.validationErrors = Array.isArray(data?.data)
+        ? data.data
+        : Array.isArray(data?.detail)
+          ? data.detail
+          : null
       throw error
     }
 
@@ -738,6 +781,25 @@ export const resumeApi = {
     apiClient('/resume/update-projects-info', {
       method: 'PATCH',
       body: payload,
+    }),
+
+  /**
+   * Generate & Sync Resume Document
+   * cURL: POST /resume/generate-document
+   */
+  generateDocument: () =>
+    apiClient('/resume/generate-document', {
+      method: 'POST',
+    }),
+
+  /**
+   * Directly download the generated Resume PDF file as a blob
+   * cURL: GET /resume/download
+   */
+  downloadResume: () =>
+    apiClient('/resume/download', {
+      method: 'GET',
+      responseType: 'blob',
     }),
 
   /**

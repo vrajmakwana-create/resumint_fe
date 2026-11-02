@@ -3,6 +3,69 @@ import AppSidebar from '../common/AppSidebar'
 import AppTopbar from '../common/AppTopbar'
 import { resumeApi } from '../../services/api'
 
+// Helper to normalize any skills/list structure (Array, Object/Dict, or comma-separated String) into a flat array of strings
+function asArray(val) {
+  if (!val) return []
+  if (Array.isArray(val)) {
+    return val.filter(Boolean)
+  }
+  if (typeof val === 'object') {
+    return Object.values(val)
+      .flatMap((v) => (Array.isArray(v) ? v : [v]))
+      .filter(Boolean)
+  }
+  if (typeof val === 'string') {
+    return val
+      .split(/[,;\n]+/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+  }
+  return []
+}
+
+// Safely normalizes tailored skills which can arrive as array of strings, categorized dict, or list of objects
+function normalizeTailoredSkills(raw) {
+  if (!raw) return []
+  if (Array.isArray(raw)) {
+    const list = []
+    raw.forEach((item) => {
+      if (typeof item === 'string') {
+        list.push(item)
+      } else if (item && typeof item === 'object') {
+        if (Array.isArray(item.skills)) {
+          list.push(...item.skills)
+        } else if (item.skill) {
+          list.push(item.skill)
+        } else if (item.name) {
+          list.push(item.name)
+        }
+      }
+    })
+    return list.filter(Boolean)
+  }
+  if (typeof raw === 'object') {
+    if (Array.isArray(raw.skills)) {
+      return normalizeTailoredSkills(raw.skills)
+    }
+    const list = []
+    Object.values(raw).forEach((val) => {
+      if (Array.isArray(val)) {
+        list.push(...val)
+      } else if (typeof val === 'string') {
+        list.push(val)
+      }
+    })
+    return list.filter(Boolean)
+  }
+  if (typeof raw === 'string') {
+    return raw
+      .split(/[,;\n]+/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+  }
+  return []
+}
+
 export default function JobAnalysisResultsPage({ onNavigate, onLogout }) {
   const [activeTab, setActiveTab] = useState('matched') // 'matched' | 'missing' | 'interview' | 'tailored'
   const [analysis, setAnalysis] = useState(null)
@@ -10,6 +73,8 @@ export default function JobAnalysisResultsPage({ onNavigate, onLogout }) {
   const [errorMsg, setErrorMsg] = useState(null)
 
   useEffect(() => {
+    let isMounted = true
+
     const fetchAnalysisData = async () => {
       setIsLoading(true)
       setErrorMsg(null)
@@ -33,7 +98,7 @@ export default function JobAnalysisResultsPage({ onNavigate, onLogout }) {
         try {
           const response = await resumeApi.getJobDescriptionById(targetId)
           const fetchedItem = response?.data || response
-          if (fetchedItem && fetchedItem.id) {
+          if (fetchedItem && fetchedItem.id && isMounted) {
             setAnalysis(fetchedItem)
             localStorage.setItem('resumint_last_job_analysis', JSON.stringify(fetchedItem))
             setIsLoading(false)
@@ -41,17 +106,47 @@ export default function JobAnalysisResultsPage({ onNavigate, onLogout }) {
           }
         } catch (apiErr) {
           console.warn('Failed to fetch individual job description by ID:', apiErr)
-          setErrorMsg(apiErr.message || 'Could not refresh latest job description analysis from server.')
+          // If the record was deleted or not found on server (404), clean up stale storage keys
+          if (apiErr.status === 404 || apiErr.message?.toLowerCase().includes('not found')) {
+            localStorage.removeItem('resumint_last_job_analysis_id')
+            localStorage.removeItem('resumint_last_job_analysis')
+            cachedData = null
+          } else if (isMounted) {
+            setErrorMsg(apiErr.message || 'Could not refresh latest job description analysis from server.')
+          }
         }
       }
 
-      if (cachedData) {
+      // If targetId was 404 or missing, attempt to fetch the latest available analysis from history
+      if (!cachedData) {
+        try {
+          const listRes = await resumeApi.getJobDescriptions()
+          const list = listRes?.data || listRes
+          if (Array.isArray(list) && list.length > 0 && isMounted) {
+            setAnalysis(list[0])
+            localStorage.setItem('resumint_last_job_analysis', JSON.stringify(list[0]))
+            localStorage.setItem('resumint_last_job_analysis_id', list[0].id)
+            setIsLoading(false)
+            return
+          }
+        } catch {
+          // Fall back gracefully to preview sample
+        }
+      }
+
+      if (cachedData && isMounted) {
         setAnalysis(cachedData)
       }
-      setIsLoading(false)
+      if (isMounted) {
+        setIsLoading(false)
+      }
     }
 
     fetchAnalysisData()
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   // Default fallback matching sample response if nothing in storage
@@ -68,12 +163,12 @@ export default function JobAnalysisResultsPage({ onNavigate, onLogout }) {
       seniority_level_jd: 'Senior / Lead',
       seniority_level_candidate: 'Mid-Level',
       experience_gap_verdict:
-        'Seniority Alert: This position requires Senior-level experience (7+ years) while your current profile reflects ~2 years. Focus heavily on demonstrating high-impact ownership, system design decisions, and cloud-native architecture in your resume bullets, and prepare to discuss complex distributed systems challenges beyond standard CRUD development.',
+        'Candidate possesses 2 years of experience against the JD requirement of 7+ years. While hands-on coding ability is solid, there is an experience gap for high-level systems design and cross-team leadership.',
     },
     skills_analysis: {
       total_jd_skills_count: 10,
       matching_skills_count: 5,
-      missing_skills_count: 4,
+      missing_skills_count: 5,
       extracted_jd_skills: [
         'Python',
         'FastAPI',
@@ -173,8 +268,20 @@ export default function JobAnalysisResultsPage({ onNavigate, onLogout }) {
   const matchScore = data.match_score || 65
   const skillsAn = data.skills_analysis || {}
   const expAn = data.experience_analysis || {}
-  const interviewPrep = data.interview_preparation || []
+  const interviewPrep = Array.isArray(data.interview_preparation)
+    ? data.interview_preparation
+    : Array.isArray(data.interview_preparation_tips)
+      ? data.interview_preparation_tips
+      : []
+
+  const matchingSkills = asArray(skillsAn.matching_skills || data.matching_skills)
+  const missingSkills = asArray(skillsAn.missing_skills || data.missing_skills)
+  const extractedJdSkills = asArray(skillsAn.extracted_jd_skills || data.extracted_jd_skills)
+
   const tailored = data.tailored_resume || {}
+  const tailoredSummary = tailored.tailored_summary || data.tailored_summary || ''
+  const rawTailoredSkills = tailored.tailored_skills || tailored.skills || data.tailored_skills || []
+  const tailoredSkillsList = normalizeTailoredSkills(rawTailoredSkills)
 
   return (
     <div className="bg-[#F5F8FC] text-[#14243B] font-body-default antialiased flex h-screen overflow-hidden">
@@ -224,7 +331,6 @@ export default function JobAnalysisResultsPage({ onNavigate, onLogout }) {
                     <span className="material-symbols-outlined text-[18px]">arrow_back</span>
                     <span>Back to Job Analyzer</span>
                   </button>
-
                 </div>
 
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pt-1">
@@ -233,12 +339,10 @@ export default function JobAnalysisResultsPage({ onNavigate, onLogout }) {
                       {data.job_title || 'Senior Cloud Infrastructure & Backend Architect'}{' '}
                       <span className="text-[#2563EB]">@ {data.company_name || 'Google'}</span>
                     </h1>
-                    <p className="text-sm text-[#64748B] mt-1  leading-relaxed">
+                    <p className="text-sm text-[#64748B] mt-1 leading-relaxed">
                       {data.match_rationale}
                     </p>
                   </div>
-
-
                 </div>
               </div>
 
@@ -297,7 +401,8 @@ export default function JobAnalysisResultsPage({ onNavigate, onLogout }) {
                         {data.job_title}
                       </h3>
                       <p className="text-xs text-[#64748B] leading-relaxed">
-                        {skillsAn.matching_skills_count || 5} of {skillsAn.total_jd_skills_count || 10} required skills matched.
+                        {matchingSkills.length || skillsAn.matching_skills_count || 5} of{' '}
+                        {extractedJdSkills.length || skillsAn.total_jd_skills_count || 10} required skills matched.
                       </p>
                     </div>
                   </div>
@@ -306,7 +411,7 @@ export default function JobAnalysisResultsPage({ onNavigate, onLogout }) {
                   <div className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <div className="p-3.5 bg-[#F8FAFC] rounded-xl border border-[#DCE5F0] text-center">
                       <div className="text-xl font-bold text-[#14243B]">
-                        {skillsAn.matching_skills_count || 5} / {skillsAn.total_jd_skills_count || 10}
+                        {matchingSkills.length || skillsAn.matching_skills_count || 5} / {extractedJdSkills.length || skillsAn.total_jd_skills_count || 10}
                       </div>
                       <div className="text-[11px] font-semibold text-[#64748B] mt-0.5">Matching Skills</div>
                       <div className="text-[10px] text-[#16A34A] font-medium mt-1">Core Stack Safe</div>
@@ -314,7 +419,7 @@ export default function JobAnalysisResultsPage({ onNavigate, onLogout }) {
 
                     <div className="p-3.5 bg-[#F8FAFC] rounded-xl border border-[#DCE5F0] text-center">
                       <div className="text-xl font-bold text-[#DC2626]">
-                        {expAn.candidate_experience_years || 2}y / {expAn.jd_experience_years || 7}y
+                        {expAn.candidate_experience_years != null ? `${expAn.candidate_experience_years}y` : '2y'} / {expAn.jd_experience_years != null ? `${expAn.jd_experience_years}y` : '7y'}
                       </div>
                       <div className="text-[11px] font-semibold text-[#64748B] mt-0.5">Experience Gap</div>
                       <div className="text-[10px] text-[#DC2626] font-medium mt-1">Seniority Gap</div>
@@ -367,7 +472,7 @@ export default function JobAnalysisResultsPage({ onNavigate, onLogout }) {
                         }`}
                       type="button"
                     >
-                      Matching Skills ({skillsAn.matching_skills?.length || 0})
+                      Matching Skills ({matchingSkills.length})
                     </button>
                     <button
                       onClick={() => setActiveTab('missing')}
@@ -375,7 +480,7 @@ export default function JobAnalysisResultsPage({ onNavigate, onLogout }) {
                         }`}
                       type="button"
                     >
-                      Missing Skills ({skillsAn.missing_skills?.length || 0})
+                      Missing Skills ({missingSkills.length})
                     </button>
                     <button
                       onClick={() => setActiveTab('interview')}
@@ -403,18 +508,22 @@ export default function JobAnalysisResultsPage({ onNavigate, onLogout }) {
                       Your resume explicitly matches these core competencies requested in the job description:
                     </p>
                     <div className="flex flex-wrap gap-2.5">
-                      {(skillsAn.matching_skills || []).map((skill, idx) => (
-                        <div
-                          key={idx}
-                          className="inline-flex items-center gap-2 bg-[#F0FDF4] border border-[#BBF7D0] px-3.5 py-2 rounded-lg text-xs"
-                        >
-                          <span className="material-symbols-outlined text-[16px] text-[#16A34A]">check_circle</span>
-                          <span className="font-bold text-[#14243B]">{skill}</span>
-                          <span className="text-[10px] font-semibold text-[#15803D] bg-white px-2 py-0.5 rounded border border-[#BBF7D0]">
-                            Matched
-                          </span>
-                        </div>
-                      ))}
+                      {matchingSkills.length > 0 ? (
+                        matchingSkills.map((skill, idx) => (
+                          <div
+                            key={idx}
+                            className="inline-flex items-center gap-2 bg-[#F0FDF4] border border-[#BBF7D0] px-3.5 py-2 rounded-lg text-xs"
+                          >
+                            <span className="material-symbols-outlined text-[16px] text-[#16A34A]">check_circle</span>
+                            <span className="font-bold text-[#14243B]">{typeof skill === 'string' ? skill : String(skill)}</span>
+                            <span className="text-[10px] font-semibold text-[#15803D] bg-white px-2 py-0.5 rounded border border-[#BBF7D0]">
+                              Matched
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-xs text-[#64748B]">No matching skills found in this scan.</p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -437,20 +546,24 @@ export default function JobAnalysisResultsPage({ onNavigate, onLogout }) {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {(skillsAn.missing_skills || []).map((skill, idx) => (
-                        <div
-                          key={idx}
-                          className="p-4 bg-[#F8FAFC] border border-[#DCE5F0] rounded-xl flex items-center justify-between gap-3"
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="material-symbols-outlined text-[#DC2626] text-[18px]">add_circle</span>
-                            <span className="font-bold text-sm text-[#14243B]">{skill}</span>
+                      {missingSkills.length > 0 ? (
+                        missingSkills.map((skill, idx) => (
+                          <div
+                            key={idx}
+                            className="p-4 bg-[#F8FAFC] border border-[#DCE5F0] rounded-xl flex items-center justify-between gap-3"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="material-symbols-outlined text-[#DC2626] text-[18px]">add_circle</span>
+                              <span className="font-bold text-sm text-[#14243B]">{typeof skill === 'string' ? skill : String(skill)}</span>
+                            </div>
+                            <span className="px-2.5 py-1 bg-[#FEF2F2] text-[#DC2626] text-[11px] font-semibold rounded-full border border-[#FECACA]">
+                              Missing Keyword
+                            </span>
                           </div>
-                          <span className="px-2.5 py-1 bg-[#FEF2F2] text-[#DC2626] text-[11px] font-semibold rounded-full border border-[#FECACA]">
-                            Missing Keyword
-                          </span>
-                        </div>
-                      ))}
+                        ))
+                      ) : (
+                        <p className="text-xs text-[#15803D] font-medium">All essential skills matched!</p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -463,59 +576,65 @@ export default function JobAnalysisResultsPage({ onNavigate, onLogout }) {
                     </p>
 
                     <div className="space-y-5">
-                      {interviewPrep.map((prep, idx) => (
-                        <div
-                          key={idx}
-                          className="p-5 bg-[#F8FAFC] border border-[#DCE5F0] rounded-xl space-y-4"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className="material-symbols-outlined text-[#2563EB] text-[20px]">
-                                psychology
+                      {interviewPrep.length > 0 ? (
+                        interviewPrep.map((prep, idx) => (
+                          <div
+                            key={idx}
+                            className="p-5 bg-[#F8FAFC] border border-[#DCE5F0] rounded-xl space-y-4"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span className="material-symbols-outlined text-[#2563EB] text-[20px]">
+                                  psychology
+                                </span>
+                                <h3 className="font-bold text-base text-[#14243B]">{prep.skill}</h3>
+                              </div>
+                              <span
+                                className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${prep.priority === 'High'
+                                  ? 'bg-red-100 text-red-700'
+                                  : 'bg-amber-100 text-amber-700'
+                                  }`}
+                              >
+                                {prep.priority || 'Medium'} Priority
                               </span>
-                              <h3 className="font-bold text-base text-[#14243B]">{prep.skill}</h3>
                             </div>
-                            <span
-                              className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${prep.priority === 'High'
-                                ? 'bg-red-100 text-red-700'
-                                : 'bg-amber-100 text-amber-700'
-                                }`}
-                            >
-                              {prep.priority} Priority
-                            </span>
+
+                            {prep.why_important && (
+                              <p className="text-xs text-[#475569] leading-relaxed">
+                                <strong className="text-[#14243B]">Why it matters:</strong> {prep.why_important}
+                              </p>
+                            )}
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                              {/* Key Concepts */}
+                              <div className="p-3.5 bg-white rounded-lg border border-[#DCE5F0] space-y-2">
+                                <span className="text-xs font-bold text-[#2563EB] uppercase tracking-wider block">
+                                  Key Concepts to Revise
+                                </span>
+                                <ul className="list-disc list-inside text-xs text-[#475569] space-y-1">
+                                  {asArray(prep.key_concepts_to_revise).map((concept, cIdx) => (
+                                    <li key={cIdx}>{typeof concept === 'string' ? concept : String(concept)}</li>
+                                  ))}
+                                </ul>
+                              </div>
+
+                              {/* Likely Questions */}
+                              <div className="p-3.5 bg-white rounded-lg border border-[#DCE5F0] space-y-2">
+                                <span className="text-xs font-bold text-[#16A34A] uppercase tracking-wider block">
+                                  Likely Interview Questions
+                                </span>
+                                <ul className="list-disc list-inside text-xs text-[#475569] space-y-1">
+                                  {asArray(prep.likely_interview_questions).map((q, qIdx) => (
+                                    <li key={qIdx}>{typeof q === 'string' ? q : String(q)}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
                           </div>
-
-                          <p className="text-xs text-[#475569] leading-relaxed">
-                            <strong className="text-[#14243B]">Why it matters:</strong> {prep.why_important}
-                          </p>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-                            {/* Key Concepts */}
-                            <div className="p-3.5 bg-white rounded-lg border border-[#DCE5F0] space-y-2">
-                              <span className="text-xs font-bold text-[#2563EB] uppercase tracking-wider block">
-                                Key Concepts to Revise
-                              </span>
-                              <ul className="list-disc list-inside text-xs text-[#475569] space-y-1">
-                                {(prep.key_concepts_to_revise || []).map((concept, cIdx) => (
-                                  <li key={cIdx}>{concept}</li>
-                                ))}
-                              </ul>
-                            </div>
-
-                            {/* Likely Questions */}
-                            <div className="p-3.5 bg-white rounded-lg border border-[#DCE5F0] space-y-2">
-                              <span className="text-xs font-bold text-[#16A34A] uppercase tracking-wider block">
-                                Likely Interview Questions
-                              </span>
-                              <ul className="list-disc list-inside text-xs text-[#475569] space-y-1">
-                                {(prep.likely_interview_questions || []).map((q, qIdx) => (
-                                  <li key={qIdx}>{q}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
+                        ))
+                      ) : (
+                        <p className="text-xs text-[#64748B]">No interview preparation topics generated.</p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -523,48 +642,41 @@ export default function JobAnalysisResultsPage({ onNavigate, onLogout }) {
                 {/* TAB 4: AI Tailored Resume */}
                 {activeTab === 'tailored' && (
                   <div className="space-y-5">
-                    {/* <div className="p-4 bg-[#F3E8FF] border border-[#DDD6FE] rounded-xl text-[#6B21A8] flex items-start gap-3">
-                      <span className="material-symbols-outlined text-[20px] text-[#7C3AED] shrink-0 mt-0.5">
-                        auto_awesome
-                      </span>
-                      <div className="text-xs space-y-1">
-                        <p className="font-bold text-[#581C87]">AI-Generated Tailored Content</p>
-                        <p className="text-[#6B21A8]">
-                          Use this tailored summary and optimized skill list to increase your response rate for this position.
-                        </p>
-                      </div>
-                    </div> */}
-
                     {/* Tailored Summary Card */}
-                    {tailored.tailored_summary && (
+                    {tailoredSummary && (
                       <div className="p-5 bg-[#F8FAFC] border border-[#DCE5F0] rounded-xl space-y-2">
                         <h3 className="font-bold text-sm text-[#14243B]">Optimized Professional Summary</h3>
                         <p className="text-xs text-[#475569] leading-relaxed bg-white p-4 rounded-lg border border-[#DCE5F0]">
-                          {tailored.tailored_summary}
+                          {tailoredSummary}
                         </p>
                       </div>
                     )}
 
                     {/* Tailored Skills List */}
-                    {tailored.tailored_skills && (
+                    {tailoredSkillsList.length > 0 && (
                       <div className="p-5 bg-[#F8FAFC] border border-[#DCE5F0] rounded-xl space-y-3">
                         <h3 className="font-bold text-sm text-[#14243B]">Tailored Skills &amp; Keywords</h3>
                         <div className="flex flex-wrap gap-2">
-                          {tailored.tailored_skills.map((s, idx) => (
+                          {tailoredSkillsList.map((s, idx) => (
                             <span
                               key={idx}
                               className="bg-white border border-[#2563EB]/30 text-[#2563EB] px-3 py-1.5 rounded-lg text-xs font-semibold shadow-xs"
                             >
-                              {s}
+                              {typeof s === 'string' ? s : String(s)}
                             </span>
                           ))}
                         </div>
                       </div>
                     )}
+
+                    {!tailoredSummary && tailoredSkillsList.length === 0 && (
+                      <div className="p-8 text-center text-xs text-[#64748B] bg-[#F8FAFC] rounded-xl border border-[#DCE5F0]">
+                        No tailored content generated for this scan yet.
+                      </div>
+                    )}
                   </div>
                 )}
               </section>
-
             </>
           )}
         </main>

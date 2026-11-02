@@ -5,15 +5,28 @@ export default function ResumePreviewModal({
   isOpen,
   onClose,
   resumeData = {},
+  syncedResumeUrl = null,
+  pdfUrl = null,
+  onDownload = null,
+  isDownloading = false,
 }) {
   const [pdfBlobUrl, setPdfBlobUrl] = useState(null)
   const [isLoadingPdf, setIsLoadingPdf] = useState(false)
   const [pdfError, setPdfError] = useState(null)
 
-  // Fetch the PDF blob from backend
+  const activePdfUrl = pdfUrl || syncedResumeUrl
+
+  // Fetch the PDF blob from backend or use direct URL
   const fetchPdf = useCallback(async () => {
     setIsLoadingPdf(true)
     setPdfError(null)
+
+    if (activePdfUrl) {
+      setPdfBlobUrl(activePdfUrl)
+      setIsLoadingPdf(false)
+      return
+    }
+
     try {
       const blob = await resumeApi.downloadResume()
       if (blob && (blob.type?.includes('pdf') || blob.size > 0)) {
@@ -33,19 +46,19 @@ export default function ResumePreviewModal({
     } finally {
       setIsLoadingPdf(false)
     }
-  }, [])
+  }, [activePdfUrl])
 
-  // Auto fetch PDF when modal opens
+  // Auto fetch PDF when modal opens or active url changes
   useEffect(() => {
     if (isOpen) {
       fetchPdf()
     } else {
       if (pdfBlobUrl && pdfBlobUrl.startsWith('blob:')) {
         URL.revokeObjectURL(pdfBlobUrl)
-        setPdfBlobUrl(null)
       }
+      setPdfBlobUrl(null)
     }
-  }, [isOpen])
+  }, [isOpen, fetchPdf])
 
   // Close on Escape key
   useEffect(() => {
@@ -82,15 +95,32 @@ export default function ResumePreviewModal({
         className="relative w-full max-w-4xl h-[92vh] sm:h-[95vh] bg-[#323639] rounded-2xl shadow-2xl overflow-hidden flex flex-col transform transition-all duration-300 animate-in zoom-in-95"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Floating Close Button */}
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute top-3 right-3 z-30 w-8 h-8 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center transition-all cursor-pointer shadow-lg backdrop-blur-sm"
-          title="Close Preview (Esc)"
-        >
-          <span className="material-symbols-outlined text-[18px]">close</span>
-        </button>
+        {/* Floating Actions: Download (if provided) + Close Button */}
+        <div className="absolute top-3 right-3 z-30 flex items-center gap-2">
+          {onDownload && (
+            <button
+              type="button"
+              onClick={onDownload}
+              disabled={isDownloading}
+              className="h-8 px-3 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center gap-1.5 transition-all cursor-pointer shadow-lg backdrop-blur-sm text-xs font-semibold disabled:opacity-50"
+              title="Download PDF"
+            >
+              <span className={`material-symbols-outlined text-[16px] ${isDownloading ? 'animate-spin' : ''}`}>
+                {isDownloading ? 'progress_activity' : 'download'}
+              </span>
+              <span className="hidden sm:inline">Download</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-8 h-8 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center transition-all cursor-pointer shadow-lg backdrop-blur-sm"
+            title="Close Preview (Esc)"
+          >
+            <span className="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        </div>
 
         {/* Content: Only the PDF Page */}
         {isLoadingPdf ? (

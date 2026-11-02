@@ -120,7 +120,7 @@ export default function JobAnalysisResultsPage({ onNavigate, onLogout }) {
       // If targetId was 404 or missing, attempt to fetch the latest available analysis from history
       if (!cachedData) {
         try {
-          const listRes = await resumeApi.getJobDescriptions()
+          const listRes = await resumeApi.getJobDescriptionHistory()
           const list = listRes?.data || listRes
           if (Array.isArray(list) && list.length > 0 && isMounted) {
             setAnalysis(list[0])

@@ -69,7 +69,11 @@ export const setRefreshToken = (token) => {
 export const getCurrentUser = () => {
   try {
     const raw = localStorage.getItem('resumint_user') || localStorage.getItem('user')
-    return raw ? JSON.parse(raw) : null
+    const user = raw ? JSON.parse(raw) : null
+    if (user && localStorage.getItem('resumint_onboarding_completed') === 'true') {
+      user.onboarding_completed = true
+    }
+    return user
   } catch {
     return null
   }
@@ -348,7 +352,10 @@ export const ONBOARDING_STEPS = {
 export function getOnboardingDestination(user) {
   if (!user) return { view: 'dashboard', step: 1 }
 
-  if (user.onboarding_completed === true) {
+  if (
+    user.onboarding_completed === true ||
+    localStorage.getItem('resumint_onboarding_completed') === 'true'
+  ) {
     return { view: 'dashboard', step: 1 }
   }
 
@@ -853,12 +860,29 @@ export const resumeApi = {
     apiClient(`/job-description/${id}`, {
       method: 'DELETE',
     }),
+
+  /**
+   * Get Dashboard Analytics
+   * cURL: GET /dashboard
+   */
+  getDashboardAnalytics: () =>
+    apiClient('/dashboard', {
+      method: 'GET',
+    }),
+}
+
+export const dashboardApi = {
+  getDashboardAnalytics: () =>
+    apiClient('/dashboard', {
+      method: 'GET',
+    }),
 }
 
 export default {
   client: apiClient,
   auth: authApi,
   resume: resumeApi,
+  dashboard: dashboardApi,
   refreshAccessToken,
   getOnboardingDestination,
   ONBOARDING_STEPS,

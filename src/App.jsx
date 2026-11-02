@@ -35,6 +35,7 @@ const PROTECTED_VIEWS = new Set([
   'analysis-results',
   'analysis-history',
   'profile-settings',
+  'profile',
 ])
 
 const VALID_VIEWS = new Set([
@@ -47,21 +48,25 @@ const VALID_VIEWS = new Set([
   'analysis-results',
   'analysis-history',
   'profile-settings',
+  'profile',
 ])
 
 function parseLocation() {
-  // Check hash first (e.g. #/dashboard or #dashboard or #login)
+  // Check hash first (e.g. #/dashboard or #dashboard or #login or #profile)
   const hash = window.location.hash.replace(/^#[/]?/, '').toLowerCase().trim()
   if (hash) {
     if (hash === 'login' || hash === 'signup' || hash === 'otp') {
       return { view: 'auth', authTab: hash }
+    }
+    if (hash === 'profile') {
+      return { view: 'profile-settings', authTab: 'login' }
     }
     if (VALID_VIEWS.has(hash)) {
       return { view: hash, authTab: 'login' }
     }
   }
 
-  // Check pathname (e.g. /dashboard or /login)
+  // Check pathname (e.g. /dashboard or /login or /profile or /editor)
   const path = window.location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase().trim()
   if (!path || path === 'home' || path === 'landing') {
     return { view: 'landing', authTab: 'login' }
@@ -71,6 +76,9 @@ function parseLocation() {
   }
   if (path === 'auth') {
     return { view: 'auth', authTab: 'login' }
+  }
+  if (path === 'profile') {
+    return { view: 'profile-settings', authTab: 'login' }
   }
   if (VALID_VIEWS.has(path)) {
     return { view: path, authTab: 'login' }
@@ -91,32 +99,47 @@ export default function App() {
     const token = getToken()
     const isAuthenticated = Boolean(token)
 
+    // Normalize 'profile' to 'profile-settings'
+    const normalizedTarget = targetView === 'profile' ? 'profile-settings' : targetView
+
     // Unauthenticated user trying to access a protected screen -> redirect to login
-    if (!isAuthenticated && PROTECTED_VIEWS.has(targetView)) {
+    if (!isAuthenticated && PROTECTED_VIEWS.has(normalizedTarget)) {
       return { view: 'auth', authTab: 'login', wasRedirected: true }
     }
 
     // Authenticated user
     if (isAuthenticated) {
       const activeUser = userProfile || getCurrentUser()
+      const isOnboardingComplete = Boolean(
+        activeUser?.onboarding_completed === true ||
+        localStorage.getItem('resumint_onboarding_completed') === 'true'
+      )
       const dest = getOnboardingDestination(activeUser)
 
       // If user has NOT completed onboarding:
-      if (activeUser && activeUser.onboarding_completed === false) {
+      if (!isOnboardingComplete && activeUser?.onboarding_completed === false) {
         // Only when onboarding_completed is true can user access Dashboard. Otherwise resume at step or onboarding
-        if (targetView === 'dashboard' || targetView === 'landing' || targetView === 'auth') {
-          return { view: dest.view, authTab: 'login', step: dest.step, wasRedirected: targetView === 'dashboard' }
+        if (normalizedTarget === 'dashboard' || normalizedTarget === 'landing' || normalizedTarget === 'auth') {
+          return { view: dest.view, authTab: 'login', step: dest.step, wasRedirected: normalizedTarget === 'dashboard' }
+        }
+      }
+
+      // If user has successfully completed onboarding:
+      // It should NOT go to /editor route; redirect to user profile section when wanting to update resume details
+      if (isOnboardingComplete) {
+        if (normalizedTarget === 'editor' || normalizedTarget === 'onboarding') {
+          return { view: 'profile-settings', authTab: 'login', wasRedirected: false }
         }
       }
 
       // If user is authenticated and visits landing or auth, route based on onboarding completion
-      if (targetView === 'landing' || targetView === 'auth') {
-        const destination = activeUser?.onboarding_completed === true ? 'dashboard' : dest.view
+      if (normalizedTarget === 'landing' || normalizedTarget === 'auth') {
+        const destination = isOnboardingComplete ? 'dashboard' : dest.view
         return { view: destination, authTab: 'login', step: dest.step, wasRedirected: false }
       }
     }
 
-    return { view: targetView, authTab: targetAuthTab, wasRedirected: false }
+    return { view: normalizedTarget, authTab: targetAuthTab, wasRedirected: false }
   }, [])
 
   const initialParsed = parseLocation()
@@ -188,6 +211,14 @@ export default function App() {
               localStorage.setItem('resumint_current_view', dest.view)
               window.history.replaceState(null, '', `/${dest.view}`)
             }
+          } else {
+            // Onboarding completed: if on /editor, redirect to profile section
+            const loc = parseLocation()
+            if (loc.view === 'editor' || loc.view === 'onboarding') {
+              setCurrentView('profile-settings')
+              localStorage.setItem('resumint_current_view', 'profile-settings')
+              window.history.replaceState(null, '', '/profile-settings')
+            }
           }
         }
       }).catch((err) => {
@@ -203,7 +234,8 @@ export default function App() {
   }, [resolveViewWithAuth])
 
   const handleNavigate = (view) => {
-    const resolved = resolveViewWithAuth(view, 'login')
+    const target = view === 'profile' ? 'profile-settings' : view
+    const resolved = resolveViewWithAuth(target, 'login')
     if (resolved.wasRedirected) {
       setCurrentAuthTab('login')
       setCurrentView('auth')
@@ -377,7 +409,7 @@ export default function App() {
       )}
 
       {/* 10. PROFILE & SETTINGS (PROTECTED) */}
-      {effectiveView === 'profile-settings' && (
+      {(effectiveView === 'profile-settings' || effectiveView === 'profile') && (
         <ProfileSettingsPage
           onNavigate={handleNavigate}
           onLogout={handleLogout}

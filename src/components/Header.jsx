@@ -2,7 +2,7 @@ import ThemeToggle from './common/ThemeToggle'
 
 export default function Header({ onNavigateLogin, onNavigateSignup, onNavigateHome }) {
   return (
-    <header className="bg-surface-container-lowest sticky top-0 z-50 border-b border-outline-variant shadow-sm transition-all duration-150">
+    <header className="fixed top-0 left-0 right-0 z-50 w-full bg-[#FFFFFF]/95 dark:bg-[#0C1D36]/95 backdrop-blur-md border-b border-[#DCE5F0] dark:border-[#1E3A5F] shadow-xs transition-all duration-150">
       <div className="flex justify-between items-center w-full px-4 sm:px-6 md:px-margin max-w-[1440px] mx-auto h-[64px] sm:h-[72px]">
         {/* Brand Logo Anchor */}
         <button

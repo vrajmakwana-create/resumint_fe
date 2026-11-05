@@ -8,7 +8,7 @@ export default function AppTopbar({ onNavigate, onLogout, titleSearchPlaceholder
     : 'JD'
 
   return (
-    <header className="h-16 bg-[#FFFFFF] border-b border-[#DCE5F0] px-4 sm:px-6 lg:px-8 flex items-center justify-between shrink-0 z-20">
+    <header className="sticky top-0 h-16 bg-[#FFFFFF] dark:bg-[#0C1D36] border-b border-[#DCE5F0] dark:border-[#1E3A5F] px-4 sm:px-6 lg:px-8 flex items-center justify-between shrink-0 z-20">
       <div className="flex items-center flex-1 max-w-md mr-2">
         {/* Mobile Hamburger Menu Toggle */}
         <button

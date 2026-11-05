@@ -500,7 +500,8 @@ export function parseExtractedResumeData(extractedData) {
   const country = pi.country || ''
   const location = pi.address || [city, state, country].filter(Boolean).join(', ')
 
-  const skillsList = Array.isArray(skillsObj.skills) ? skillsObj.skills : []
+  const skillsData = skillsObj.skills !== undefined ? skillsObj.skills : skillsObj
+  const skillsList = Array.isArray(skillsData) ? skillsData : []
 
   return {
     first_name: firstName,
@@ -521,7 +522,7 @@ export function parseExtractedResumeData(extractedData) {
 
     summary: summaryObj.summary || '',
 
-    skills: skillsList,
+    skills: skillsData,
     tools: skillsList.slice(0, 8),
     technical: skillsList.slice(8, 18),
     leadership: skillsList.slice(18),

@@ -1,7 +1,7 @@
 import { getCurrentUser } from '../../services/api'
 import ThemeToggle from './ThemeToggle'
 
-export default function AppTopbar({ onNavigate, titleSearchPlaceholder = 'Search resumes, job descriptions, analysis...' }) {
+export default function AppTopbar({ onNavigate, onLogout, titleSearchPlaceholder = 'Search resumes, job descriptions, analysis...' }) {
   const user = getCurrentUser()
   const initials = user?.first_name && user?.last_name
     ? `${user.first_name[0]}${user.last_name[0]}`.toUpperCase()

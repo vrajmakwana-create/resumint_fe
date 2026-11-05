@@ -618,7 +618,7 @@ export default function ProfileSettingsPage({ onNavigate, onLogout }) {
       {/* MAIN CONTAINER */}
       <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F5F8FC] dark:bg-[#0B1120]">
         {/* TOPBAR */}
-        <AppTopbar onNavigate={onNavigate} />
+        <AppTopbar onNavigate={onNavigate} onLogout={onLogout} />
 
         {/* WORKSPACE */}
         <main className="flex-1 overflow-y-auto px-4 py-5 sm:p-6 lg:p-8 space-y-6">
@@ -632,9 +632,20 @@ export default function ProfileSettingsPage({ onNavigate, onLogout }) {
                 Manage all 6 core sections of your resume profile with instant in-place editing and real-time synchronization.
               </p>
             </div>
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-2 border-b border-[#DCE5F0] dark:border-[#24334A]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#DCE5F0] dark:border-[#24334A]">
               {/* Actions & Theme */}
               <ThemeToggle variant="segmented" />
+              {onLogout && (
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[13px] font-semibold bg-[#FEE2E2]/60 dark:bg-[#7F1D1D]/30 text-[#DC2626] dark:text-[#F87171] border border-[#FECACA] dark:border-[#DC2626]/40 hover:bg-[#FEE2E2] dark:hover:bg-[#7F1D1D]/60 transition-all cursor-pointer shadow-xs active:scale-[0.98]"
+                  title="Sign out of your account"
+                >
+                  <span className="material-symbols-outlined text-[17px]">logout</span>
+                  <span>Log Out</span>
+                </button>
+              )}
             </div>
 
             {/* Profile Overview Card (Identity & Core Meta) */}
@@ -715,6 +726,17 @@ export default function ProfileSettingsPage({ onNavigate, onLogout }) {
                   <span className="material-symbols-outlined text-[15px] text-[#059669]">download</span>
                   <span>{isDownloading ? 'Downloading...' : 'Download'}</span>
                 </button>
+                {onLogout && (
+                  <button
+                    type="button"
+                    onClick={onLogout}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12px] font-semibold bg-[#FEE2E2]/60 dark:bg-[#7F1D1D]/30 text-[#DC2626] dark:text-[#F87171] border border-[#FECACA] dark:border-[#DC2626]/40 hover:bg-[#FEE2E2] dark:hover:bg-[#7F1D1D]/60 transition-colors cursor-pointer"
+                    title="Log out of your account"
+                  >
+                    <span className="material-symbols-outlined text-[15px]">logout</span>
+                    <span>Log Out</span>
+                  </button>
+                )}
               </div>
             </div>
 

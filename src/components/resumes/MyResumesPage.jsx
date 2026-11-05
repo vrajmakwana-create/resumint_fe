@@ -37,7 +37,7 @@ export default function MyResumesPage({ onNavigate, onLogout }) {
       {/* MAIN CONTAINER */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* TOPBAR */}
-        <AppTopbar onNavigate={onNavigate} />
+        <AppTopbar onNavigate={onNavigate} onLogout={onLogout} />
 
         {/* CONTENT */}
         <main className="flex-1 flex flex-col overflow-hidden bg-[#F5F8FC]">

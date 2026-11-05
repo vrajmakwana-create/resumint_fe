@@ -226,7 +226,7 @@ export default function DashboardPage({ onNavigate, onLogout }) {
       {/* MAIN WRAPPER */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* TOP BAR */}
-        <AppTopbar onNavigate={onNavigate} />
+        <AppTopbar onNavigate={onNavigate} onLogout={onLogout} />
 
         {/* SCROLLABLE CANVAS */}
         <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-7">

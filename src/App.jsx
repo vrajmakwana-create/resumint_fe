@@ -268,14 +268,20 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const handleLogout = () => {
-    clearSession()
-    localStorage.removeItem('resumint_current_view')
-    setAuthTokenState(null)
-    setCurrentAuthTab('login')
-    setCurrentView('landing')
-    window.history.pushState(null, '', '/')
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+  const handleLogout = async () => {
+    try {
+      await authApi.logout()
+    } catch (err) {
+      console.warn('Backend logout error:', err)
+    } finally {
+      clearSession()
+      localStorage.removeItem('resumint_current_view')
+      setAuthTokenState(null)
+      setCurrentAuthTab('login')
+      setCurrentView('landing')
+      window.history.pushState(null, '', '/')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
   }
 
   // Active authentication guard for rendering

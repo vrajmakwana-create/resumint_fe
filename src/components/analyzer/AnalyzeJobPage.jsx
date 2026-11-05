@@ -165,7 +165,7 @@ export default function AnalyzeJobPage({ onNavigate, onLogout, onAnalysisDone })
       {/* MAIN CONTAINER */}
       <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F5F8FC]">
         {/* TOPBAR */}
-        <AppTopbar onNavigate={onNavigate} />
+        <AppTopbar onNavigate={onNavigate} onLogout={onLogout} />
 
         {/* WORKSPACE */}
         <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8">

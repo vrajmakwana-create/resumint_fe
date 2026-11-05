@@ -474,6 +474,20 @@ export const authApi = {
       method: 'POST',
       body: payload,
     }),
+
+  /**
+   * User Logout
+   * cURL: POST /users/logout
+   */
+  logout: async () => {
+    try {
+      return await apiClient('/users/logout', {
+        method: 'POST',
+      })
+    } finally {
+      clearSession()
+    }
+  },
 }
 
 /**

@@ -98,7 +98,7 @@ export default function OnboardingPage({ onStartScratch, onUploadResume, onSignO
             </div>
           </div>
 
-          {/* Right: User Email / Support & Sign Out */}
+          {/* Right: User Support */}
           <div className="flex items-center gap-2 sm:gap-space-md">
             <button
               onClick={() => alert('Support team is ready to help you at support@resumint.ai')}
@@ -107,14 +107,6 @@ export default function OnboardingPage({ onStartScratch, onUploadResume, onSignO
             >
               <span className="material-symbols-outlined text-[18px]">help</span>
               <span>Need Help?</span>
-            </button>
-            <div className="h-5 w-px bg-[#DCE5F0] hidden md:block" />
-            <button
-              onClick={onSignOut}
-              className="text-[#434655] hover:text-[#ba1a1a] transition-colors font-body-medium text-body-medium text-xs px-2 py-1 cursor-pointer"
-              type="button"
-            >
-              Sign Out
             </button>
           </div>
         </div>

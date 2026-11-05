@@ -32,14 +32,6 @@ export default function AppSidebar({ currentView, onNavigate, onLogout }) {
     }
   }
 
-  const handleLogoutClick = () => {
-    setIsMobileOpen(false)
-    clearSession()
-    if (onLogout) {
-      onLogout()
-    }
-  }
-
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
     { id: 'analyze-job', label: 'Analyze Job Description', icon: 'document_scanner' },
@@ -171,27 +163,18 @@ export default function AppSidebar({ currentView, onNavigate, onLogout }) {
 
           {/* User Profile Pill */}
           <div className="p-3 bg-[#0C1D36]">
-            <div className="flex items-center justify-between p-2 rounded-lg bg-[#142C50]/80 hover:bg-[#142C50] border border-[#1E3A5F] transition-colors cursor-pointer">
-              <div
-                className="flex items-center gap-2.5 overflow-hidden flex-1 cursor-pointer"
-                onClick={() => handleNavClick('profile-settings')}
-              >
-                <div className="w-8 h-8 rounded-full bg-[#2563EB] text-white flex items-center justify-center font-bold text-xs ring-2 ring-blue-400/20 shrink-0">
-                  {initials}
-                </div>
-                <div className="flex flex-col text-left truncate">
-                  <span className="text-xs font-semibold text-white leading-tight truncate">{displayName}</span>
-                  <span className="text-[11px] text-[#94A3B8] truncate leading-tight">{roleSubtitle}</span>
-                </div>
+            <div
+              className="flex items-center gap-2.5 p-2 rounded-lg bg-[#142C50]/80 hover:bg-[#142C50] border border-[#1E3A5F] transition-colors cursor-pointer"
+              onClick={() => handleNavClick('profile-settings')}
+              title="View Profile & Settings"
+            >
+              <div className="w-8 h-8 rounded-full bg-[#2563EB] text-white flex items-center justify-center font-bold text-xs ring-2 ring-blue-400/20 shrink-0">
+                {initials}
               </div>
-              <button
-                onClick={handleLogoutClick}
-                className="text-[#94A3B8] hover:text-rose-400 transition-colors p-1 flex items-center justify-center cursor-pointer shrink-0"
-                title="Sign Out"
-                type="button"
-              >
-                <span className="material-symbols-outlined text-[18px]">logout</span>
-              </button>
+              <div className="flex flex-col text-left truncate flex-1">
+                <span className="text-xs font-semibold text-white leading-tight truncate">{displayName}</span>
+                <span className="text-[11px] text-[#94A3B8] truncate leading-tight">{roleSubtitle}</span>
+              </div>
             </div>
           </div>
         </div>

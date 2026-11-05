@@ -31,6 +31,7 @@ export default function OnboardingPage({ onStartScratch, onUploadResume, onSignO
       const parsed = parseExtractedResumeData(extractedData)
 
       if (parsed) {
+        localStorage.removeItem('resumint_resume_draft')
         localStorage.setItem('resumint_extracted_resume', JSON.stringify(parsed))
         setExtractedCounts({
           skills: (typeof parsed.skills === 'object' && parsed.skills !== null && !Array.isArray(parsed.skills)) ? Object.values(parsed.skills).reduce((acc, v) => acc + (Array.isArray(v) ? v.length : 0), 0) : (parsed.skills?.length || 0),

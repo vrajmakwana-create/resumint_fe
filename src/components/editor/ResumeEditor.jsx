@@ -142,23 +142,26 @@ export default function ResumeEditor({ onExitSetup, initialStep = 1 }) {
   const [resumeData, setResumeData] = useState(() => {
     try {
       const draft = localStorage.getItem('resumint_resume_draft')
-      if (draft) {
-        const parsedDraft = JSON.parse(draft)
-        if (parsedDraft && typeof parsedDraft === 'object') {
-          return {
-            ...parsedDraft,
-            skills: normalizeSkills(parsedDraft.skills),
-          }
+      const stored = localStorage.getItem('resumint_extracted_resume')
+      const parsedDraft = draft ? JSON.parse(draft) : null
+      const parsedStored = stored ? JSON.parse(stored) : null
+
+      if (parsedDraft && typeof parsedDraft === 'object') {
+        const draftSkills = normalizeSkills(parsedDraft.skills)
+        const storedSkills = parsedStored?.skills ? normalizeSkills(parsedStored.skills) : null
+        const draftCount = getTotalSkillsCount(draftSkills)
+        const storedCount = getTotalSkillsCount(storedSkills)
+
+        return {
+          ...parsedDraft,
+          skills: (draftCount === 0 && storedCount > 0) ? storedSkills : draftSkills,
         }
       }
-      const stored = localStorage.getItem('resumint_extracted_resume')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        if (parsed && typeof parsed === 'object') {
-          return {
-            ...parsed,
-            skills: normalizeSkills(parsed.skills),
-          }
+
+      if (parsedStored && typeof parsedStored === 'object') {
+        return {
+          ...parsedStored,
+          skills: normalizeSkills(parsedStored.skills),
         }
       }
     } catch (err) {

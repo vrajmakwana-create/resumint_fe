@@ -57,10 +57,20 @@ export function normalizeSkills(raw) {
 
   if (!raw) return result
 
-  const source =
-    typeof raw === 'object' && raw !== null && 'skills' in raw && typeof raw.skills === 'object'
-      ? raw.skills
-      : raw
+  let source = raw
+  while (
+    typeof source === 'object' &&
+    source !== null &&
+    'skills' in source &&
+    typeof source.skills === 'object' &&
+    source.skills !== null &&
+    !Array.isArray(source.skills)
+  ) {
+    source = source.skills
+  }
+  if (typeof source === 'object' && source !== null && 'skills' in source && Array.isArray(source.skills)) {
+    source = source.skills
+  }
 
   if (Array.isArray(source)) {
     const list = source
